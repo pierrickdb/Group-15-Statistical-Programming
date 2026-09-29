@@ -5,7 +5,7 @@
 foo <- function(a,b){
   1+1
   
-  
+  a + b
 }
 
 
