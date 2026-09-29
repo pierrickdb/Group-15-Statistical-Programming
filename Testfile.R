@@ -11,7 +11,7 @@ foo <- function(a,b){
 
 bar <- function(a,b){
   1*1
-  sin(a) + cos(b) +1
-  
+  sin(a)^2 + cos(b)^2 +1
+
 }
 
