@@ -1,17 +1,9 @@
-1+1
+#Add Names and Student ID here 
+#Randeems Tasks:
+#Fagans Tasks:
+#Pierricks Tasks:
+list.files()
+setwd('/Users/pierrickdeboer/Desktop/UoE-Master/Statistical Programming/Practical-1') ## comment out of submitted
+music_raw <- readLines("palestrina.txt")
 
-
-
-foo <- function(a,b){
-  1+1
-  
-  a + b
-}
-
-
-bar <- function(a,b){
-  1*1
-  sin(a)^2 + cos(b)^2 +1
-
-}
-
+#Task 1 / Preprocessing the Data
