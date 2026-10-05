@@ -131,7 +131,12 @@ final_music
 
 #Experiment for w1, w2, w3
 #w1 output : "F#5w | G5b | Rw Rh G5h | G5h C5h G5h. F5q E5q D5q | E5h F5w | E5w Rw | E5w D5h | D5h C#5h D5h Rh G4h C5h |"
+#here all weights are equally active and all lag's are taking into account. 
 #w2 output : "F#5w C4q A3h | E4w. E4q E5h D4h Bb3h E4h F4q | G2h F3h F3w A4h | | | E4q F4h Bb4w | E4h Rh G3w G4h G3w | A3h D4h D4h C#4h |"
+#here only the first iteration uses the w[1] weight after that it will not take any input and this leads to the first iteration of the loop will only count in the end for the next_token
+#w3 output : "F#5w | G3q A3q G3q A3h A4h A4h E5h | D4h C4q Bb3q C4q | E5q E5q F5q G5h F5h E5h F5w E5h D5h D5h C#5q C#5h D5w | Bb4w | F3h. E3e F#3h G3h | D4w D4h E4h | A4h F4h E4h. D4q |"
+#with this weight vector we only have a active entry from w[4] at each iteration So it is only dependent on lag1
+
 
 
 
