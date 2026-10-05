@@ -54,7 +54,10 @@ make_matrix <- function(tokens, end, mlag = 4) {
   #Create the matrix in column major order
   matrix <- matrix(data = data, nrow = n_row, ncol = n_column)
   #Remove all rows where end appears except the last column
-  matrix <- matrix[-which(matrix[, 1:mlag] == end, arr.ind = TRUE)[, 1], ]
+  remove_rows <- which(rowSums(M[, 1:mlag] == end) > 0)
+  if (length(remove_rows) > 0) {
+    M <- M[-remove_rows, , drop = FALSE]
+  }
   return(matrix)
 }
 
@@ -129,13 +132,27 @@ w3 <- c(0, 0, 0, 1)
 final_music <- generate_music(start,M,w3,notes)
 final_music
 
-#Experiment for w1, w2, w3
-#w1 output : "F#5w | G5b | Rw Rh G5h | G5h C5h G5h. F5q E5q D5q | E5h F5w | E5w Rw | E5w D5h | D5h C#5h D5h Rh G4h C5h |"
-#here all weights are equally active and all lag's are taking into account. 
-#w2 output : "F#5w C4q A3h | E4w. E4q E5h D4h Bb3h E4h F4q | G2h F3h F3w A4h | | | E4q F4h Bb4w | E4h Rh G3w G4h G3w | A3h D4h D4h C#4h |"
-#here only the first iteration uses the w[1] weight after that it will not take any input and this leads to the first iteration of the loop will only count in the end for the next_token
-#w3 output : "F#5w | G3q A3q G3q A3h A4h A4h E5h | D4h C4q Bb3q C4q | E5q E5q F5q G5h F5h E5h F5w E5h D5h D5h C#5q C#5h D5w | Bb4w | F3h. E3e F#3h G3h | D4w D4h E4h | A4h F4h E4h. D4q |"
-#with this weight vector we only have a active entry from w[4] at each iteration So it is only dependent on lag1
+# Experiment with different mixture weights
+#
+# w1 = c(1,1,1,1):
+# All four lagged dependencies are used. The model therefore considers
+# both long-term and short-term patterns in the music. This provides
+# more context when predicting the next note and can help preserve
+# stylistic features such as note sequences and bar structure.
+#
+# w2 = c(1,0,0,0):
+# Only the longest lagged dependency is used. The prediction is based
+# on the previous four notes, corresponding to a fourth-order Markov
+# model. This gives the model more context, but matching four-note
+# sequences occurs less frequently, so the predictions can be more
+# variable when there are few matching sequences.
+#
+# w3 = c(0,0,0,1):
+# Only the shortest lagged dependency is used. The prediction therefore
+# depends only on the immediately preceding note, corresponding to a
+# first-order Markov model. This gives less contextual information and
+# therefore tends to produce less structured sequences, although local
+# note transitions are still preserved.
 
 
 
