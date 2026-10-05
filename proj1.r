@@ -30,6 +30,7 @@ music_clean <- preprocess(music= music_raw)
 tail(music_clean, n = 10)
 
 
+
 #Task 2 / Create tokens and matrices
 #Construct the vector of unique notes.
 notes <- unique(music_clean)
@@ -56,3 +57,4 @@ make_matrix <- function(tokens, end, mlag = 4) {
 ##############
 M <- make_matrix(tokens = tokens, end = which(notes=="||"), mlag = 4)
 head(M,100)
+
