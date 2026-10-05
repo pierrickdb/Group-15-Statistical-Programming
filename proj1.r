@@ -110,16 +110,16 @@ generate_music <- function(start, M, w = rep(1, ncol(M) - 1) ,notes){
   key <- start
   amount_notes_used = 1
   amount_bars_used = 0
+  #add notes until we have 200 notes or 8 bars or the song is ending (||)
   while(amount_notes_used < 200 && amount_bars_used <8){
     generated_token <- next_note(key,M,w)
-    key <- c(key, generated_token) #add to current key 
+    key <- c(key, generated_token)  
     amount_notes_used <- amount_notes_used + 1
     if(generated_token == which(notes == "|")) amount_bars_used <- amount_bars_used +1
-    if(generated_token == which(notes == "||")) break #the song is finished
+    if(generated_token == which(notes == "||")) break 
     
   }
-  
-  #translate the tokens into actual notes
+  #translate the tokens into actual notes and return song as concatenated string
   final_song <- notes[key]
   return(paste(final_song,collapse = " "))
 }
