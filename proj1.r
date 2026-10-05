@@ -124,6 +124,15 @@ generate_music <- function(start, M, w = rep(1, ncol(M) - 1) ,notes){
   return(paste(final_song,collapse = " "))
 }
 
+start <- 20
+w3 <- c(0, 0, 0, 1)
+final_music <- generate_music(start,M,w3,notes)
+final_music
+
+#Experiment for w1, w2, w3
+#w1 output : "F#5w | G5b | Rw Rh G5h | G5h C5h G5h. F5q E5q D5q | E5h F5w | E5w Rw | E5w D5h | D5h C#5h D5h Rh G4h C5h |"
+#w2 output : "F#5w C4q A3h | E4w. E4q E5h D4h Bb3h E4h F4q | G2h F3h F3w A4h | | | E4q F4h Bb4w | E4h Rh G3w G4h G3w | A3h D4h D4h C#4h |"
+
 
 
 
