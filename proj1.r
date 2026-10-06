@@ -1,5 +1,5 @@
 #=================================================================================
-#Add Raneems S3044929, Fagan xy xx, Pierrick de Boer s3015664
+#Add Raneems S3044929, Fagan S3015664, Pierrick de Boer S3034691
 #Raneems Tasks: Task 1.4 Preprocessing
 #Fagans Tasks: Task 5, 6 Matrix and Unique
 #Pierricks Tasks: Task 1.1,1.2,1.3 7 & 8 Github, Read In, next_note, generate_music
@@ -13,26 +13,49 @@ music_raw <- readLines("palestrina.txt")
 #Return: cleaned music data
 
 preprocess <- function(music) {
+  
   #remove the first 3 lines
   music <- music[-c(1,2,3)] 
+  
   #remove lines starting with #
   music <- music[-grep("^#", music)]
-  #find the blank lines
-  blank <- grep("^$", music)
-  #add || to the end of each piece
-  music[blank - 1] <- paste(music[blank - 1], "||")
-  #add | to the end of the other measures
-  music[-c(blank, blank - 1)] <- paste(music[-c(blank, blank - 1)],"|" )
-  #remove the blank lines 
-  music <- music[-blank]
+  
+  #find the number of lines
+  n <- length(music)
+  
+  # go through each line 
+  for(i in 1:(n-1)) {
+    
+    #add || before a blank line
+    
+    if (music[i+1] == "") {  
+      music[i] <- paste(music[i], "||")
+      
+      
+      
+    }else{
+      #add | to the other lines
+      music[i] <- paste(music[i], "|")
+    }
+  }
+  
+  
+  #remove blank lines 
+  music <- music[music != ""]
+  
   #split the music into individual notes
   music <- strsplit(music, " ") 
-  #put everything into one vector 
+  
+  # put everything into one vector 
   music <- unlist(music)
+  
   return(music)
 }
 
 music_clean <- preprocess(music= music_raw)
+
+tail(music_clean, n = 10)
+
 
 #DICTIONARY AND TOKEN 
 notes <- unique(music_clean)
