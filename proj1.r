@@ -5,13 +5,12 @@
 #Pierricks Tasks: Task 1.1,1.2,1.3 7 & 8 Github, Read In, next_note, generate_music
 #=================================================================================
 
-#READ IN 
+#READ IN
 music_raw <- readLines("palestrina.txt")
 
 #Input: music data
 #Task: preprocess the music data
 #Return: cleaned music data
-
 preprocess <- function(music) {
   
   #remove the first 3 lines
@@ -23,7 +22,7 @@ preprocess <- function(music) {
   #find the number of lines
   n <- length(music)
   
-  # go through each line 
+  #go through each line 
   for(i in 1:(n-1)) {
     
     #add || before a blank line
@@ -54,22 +53,27 @@ preprocess <- function(music) {
 
 music_clean <- preprocess(music= music_raw)
 
-tail(music_clean, n = 10)
 
 
-#DICTIONARY AND TOKEN 
+#Input: preprocessed music 
+#Task: create a vector of unique notes
+#Return: the notes(dictionary)
 notes <- unique(music_clean)
+
 tokens <- match(x = music_clean, table = notes)
 
-#Input: List of tokens and token for end and size of considering window
-#Task: 
-#Return: Matrix M with all ...
+#Input: list of tokens and token of ||, mlag which is the amount of previous notes for determining the next note 
+#Task: create the function to build the matrix M
+#Return: Matrix M includes all combinations of sequences from 1 to mlag 
 make_matrix <- function(tokens, end, mlag = 4) {
+  
   #Determine the dimension of matrix M
   n_column <- mlag + 1
   n_row <- length(tokens) - mlag
+  
   #Make an empty vector for collecting data
   data <- c()
+  
   #Fill vector with data from tokens
   for(i in 1:n_column) {
     index <- n_row - 1 + i
@@ -77,9 +81,12 @@ make_matrix <- function(tokens, end, mlag = 4) {
   }
   #Create the matrix in column major order
   matrix <- matrix(data = data, nrow = n_row, ncol = n_column)
-  #Remove all rows where end appears except the last column
+  
+  #Remove all rows where " ||" appears except the last column
   remove_rows <- which(rowSums(M[, 1:mlag] == end) > 0)
+  
   if (length(remove_rows) > 0) {
+    
     M <- M[-remove_rows, , drop = FALSE]
   }
   return(matrix)
@@ -87,31 +94,40 @@ make_matrix <- function(tokens, end, mlag = 4) {
 
 M <- make_matrix(tokens = tokens, end = which(notes=="||"), mlag = 4)
 
-#Input: current key (vector of tokens regarding referring to the sequence), Matrix and weight
-#Task: Creates the probability distribution which we will sample the next note from a given current sequence
-#Return: the next_token
+#Input: current key,  Matrix and weight
+#Task: creates the probability distribution which we will sample the next note from a given current sequence
+#Return: the following token 
 next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   
   #work with longer & shorter keys
   mlag <- length(M[1,]) - 1
+  
   if (length(key) > mlag) {
+    
     key <- key[(length(key) - mlag + 1):length(key)]
   }
   #start index
   mc <- mlag - length(key) + 1
+  
   #storage for candidate and its probability
   cand = c()  
   prob = c()
+  
   #consider all length form 1 to mlag keys for the next token
   while (mc <= mlag) {
-    #
+    
+    #reapeatedly finding the rows of M that matches the key 
     ii <- colSums(!(t(M[, mc:mlag, drop = FALSE]) == key)) 
+    
     #store the next_token candidate where the key does not deviate
     u  <- M[ii == 0, mlag + 1]
     n  <- length(u)
+    
     if (n > 0) {
+      
       cand <- c(cand, u)
       prob <- c(prob, rep(w[mc] / n, n))
+      
     }
     #shorten the key and increase the window
     key <- key[-1]   
@@ -119,9 +135,13 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   }
   #sampling
   if (length(cand) == 0 || sum(prob) == 0) {
+    
     next_token <- sample(M[,ncol(M)],1)
+    
   } else if (length(cand) == 1) {
-    next_token <- cand[1]                      
+    
+    next_token <- cand[1]    
+    
   } else {
     next_token <- sample(cand, 1, prob = prob)
   }
@@ -131,30 +151,37 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
 next_token <- next_note(key,M,w)
 
 #Input: start token, M and weights
-#Task: generate a vector with literately generating the next token until the song is complete
+#Task: generate a vector with iteratively calling the next token and decode it into notes
 #Return the song as a concatenated string
 generate_music <- function(start, M, w = rep(1, ncol(M) - 1) ,notes){
+
   key <- start
   amount_notes_used = 1
   amount_bars_used = 0
-  #add notes until we have 200 notes or 8 bars or the song is ending (||)
+  
+  #add notes until we have 200 notes, 8 bars or the song is ending (||)
   while(amount_notes_used < 200 && amount_bars_used <8){
+    
     generated_token <- next_note(key,M,w)
+    
     key <- c(key, generated_token)  
+    
     amount_notes_used <- amount_notes_used + 1
     if(generated_token == which(notes == "|")) amount_bars_used <- amount_bars_used +1
+    
     if(generated_token == which(notes == "||")) break 
     
   }
-  #translate the tokens into actual notes and return song as concatenated string
+  #translate token into note 
   final_song <- notes[key]
+  
   return(paste(final_song,collapse = " "))
 }
 
-start <- 20
-w3 <- c(0, 0, 0, 1)
-final_music <- generate_music(start,M,w3,notes)
-final_music
+
+sim_music <- generate_music(start = 20, M = M, notes = notes,
+                            w = c(1, 1, 1, 1))
+sim_music 
 
 # Experiment with different mixture weights
 #
