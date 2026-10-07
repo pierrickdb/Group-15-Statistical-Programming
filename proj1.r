@@ -38,7 +38,6 @@ preprocess <- function(music) {
     }
   }
   
-  
   #remove blank lines 
   music <- music[music != ""]
   
@@ -53,14 +52,14 @@ preprocess <- function(music) {
 
 music_clean <- preprocess(music= music_raw)
 
-
-
 #Input: preprocessed music 
 #Task: create a vector of unique notes
 #Return: the notes(dictionary)
-
 notes <- unique(music_clean)
 
+#Input: preprocessed music, unique notes
+#Task: creates a list of size length(music_clean) which referes to the token
+#Return: list of tokens
 tokens <- match(x = music_clean, table = notes)
 
 #Input: list of tokens and token of ||, mlag which is the amount of previous notes for determining the next note 
@@ -168,9 +167,15 @@ generate_music <- function(start, M, w = rep(1, ncol(M) - 1) ,notes){
     key <- c(key, generated_token)  
     
     amount_notes_used <- amount_notes_used + 1
-    if(generated_token == which(notes == "|")) amount_bars_used <- amount_bars_used +1
     
-    if(generated_token == which(notes == "||")) break 
+    #count bars
+    if(generated_token == which(notes == "|")) {
+      amount_bars_used <- amount_bars_used +1
+    }  
+    #stop sign
+    if(generated_token == which(notes == "||")) {
+      break 
+    }
     
   }
   #translate token into note 
@@ -182,7 +187,9 @@ generate_music <- function(start, M, w = rep(1, ncol(M) - 1) ,notes){
 
 sim_music <- generate_music(start = 20, M = M, notes = notes,
                             w = c(1, 1, 1, 1))
+#print song
 sim_music 
+
 
 # Experiment with different mixture weights
 #
