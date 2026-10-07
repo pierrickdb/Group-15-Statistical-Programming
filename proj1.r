@@ -58,6 +58,7 @@ music_clean <- preprocess(music= music_raw)
 #Input: preprocessed music 
 #Task: create a vector of unique notes
 #Return: the notes(dictionary)
+
 notes <- unique(music_clean)
 
 tokens <- match(x = music_clean, table = notes)
