@@ -133,13 +133,9 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   }
   #sampling
   if (length(cand) == 0 || sum(prob) == 0) {
-    
     next_token <- sample(M[,ncol(M)],1)
-    
   } else if (length(cand) == 1) {
-    
     next_token <- cand[1]    
-    
   } else {
     next_token <- sample(cand, 1, prob = prob)
   }
