@@ -27,13 +27,12 @@ preprocess <- function(music) {
 
 
     if (music[i] == "") {
+      #skip blank lines to avoid adding | to their end
       next
-
       
     }else if (music[i+1] == "") {  
       #add || before a blank line
       music[i] <- paste(music[i], "||")
-      
       
     }else{
       #add | to the other lines
