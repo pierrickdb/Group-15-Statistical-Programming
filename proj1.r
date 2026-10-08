@@ -1,8 +1,8 @@
 #=================================================================================
 #Add Raneem Alluhaydan S3044929, Fagan Ganbarli S3015664, Pierrick de Boer S3034691
-#Raneems Tasks: Task 1.4 Preprocessing
-#Fagans Tasks: Task 5, 6 Matrix and Unique
-#Pierricks Tasks: Task 1.1,1.2,1.3 7 & 8 Github, Read In, next_note, generate_music
+#Raneems Tasks: Task 1.4 Preprocessing 30%
+#Fagans Tasks: Task 5, 6 Matrix and Unique 30%
+#Pierricks Tasks: Task 1.1,1.2,1.3 7 & 8 Github, Read In, next_note, generate_music 40%
 #=================================================================================
 
 #READ IN
