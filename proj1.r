@@ -8,7 +8,7 @@
 #READ IN
 music_raw <- readLines("palestrina.txt")
 
-#Input: music data
+#Input: raw music data
 #Task: preprocess the music data
 #Return: cleaned music data
 preprocess <- function(music) {
@@ -64,13 +64,13 @@ music_clean <- preprocess(music= music_raw)
 notes <- unique(music_clean)
 
 #Input: preprocessed music, unique notes
-#Task: creates a list of size length(music_clean) which referes to the token
+#Task: create a vector of token IDs that refers to each element of music_clean
 #Return: list of tokens
 tokens <- match(x = music_clean, table = notes)
 
-#Input: list of tokens and token of ||, mlag which is the amount of previous notes for determining the next note 
+#Input: list of tokens, mlag which is the amount of previous notes for determining the next note 
 #Task: create the function to build the matrix M
-#Return: Matrix M includes all combinations of sequences from 1 to mlag 
+#Return: Matrix M containing token sequences
 make_matrix <- function(tokens, end, mlag = 4) {
   
   #Determine the dimension of matrix M
@@ -86,12 +86,12 @@ make_matrix <- function(tokens, end, mlag = 4) {
     data <- c(data, tokens[i:index]) 
   }
   #Create the matrix in column major order
-  matrix <- matrix(data = data, nrow = n_row, ncol = n_column)
+  matrix_ <- matrix(data = data, nrow = n_row, ncol = n_column)
   
-  #Remove all rows where " ||" appears except the last column
-  matrix <- matrix[-which(matrix[, 1:mlag] == end, arr.ind = TRUE)[, 1], ]
+  #Remove rows where "end" appears in the first mlag columns
+  matrix_ <- matrix_[-which(matrix_[, 1:mlag] == end, arr.ind = TRUE)[, 1], ]
 
-  return(matrix)
+  return(matrix_)
 }
 
 M <- make_matrix(tokens = tokens, end = which(notes=="||"), mlag = 4)
@@ -112,8 +112,8 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   mc <- mlag - length(key) + 1
   
   #storage for candidate and its probability
-  cand = c()  
-  prob = c()
+  cand <- c()  
+  prob <- c()
   
   #consider all length form 1 to mlag keys for the next token
   while (mc <= mlag) {
@@ -137,20 +137,15 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   }
   #sampling
   if (length(cand) == 0 || sum(prob) == 0) {
-    
     next_token <- sample(M[,ncol(M)],1)
-    
   } else if (length(cand) == 1) {
-    
     next_token <- cand[1]    
-    
   } else {
     next_token <- sample(cand, 1, prob = prob)
   }
   return(next_token)
 }
 
-next_token <- next_note(key,M,w)
 
 #Input: start token, M and weights
 #Task: generate a vector with iteratively calling the next token and decode it into notes
@@ -158,8 +153,8 @@ next_token <- next_note(key,M,w)
 generate_music <- function(start, M, w = rep(1, ncol(M) - 1) ,notes){
 
   key <- start
-  amount_notes_used = 1
-  amount_bars_used = 0
+  amount_notes_used <- 1
+  amount_bars_used <- 0
   
   #add notes until we have 200 notes, 8 bars or the song is ending (||)
   while(amount_notes_used < 200 && amount_bars_used <8){
