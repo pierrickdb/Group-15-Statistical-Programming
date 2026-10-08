@@ -83,12 +83,8 @@ make_matrix <- function(tokens, end, mlag = 4) {
   matrix <- matrix(data = data, nrow = n_row, ncol = n_column)
   
   #Remove all rows where " ||" appears except the last column
-  remove_rows <- which(rowSums(M[, 1:mlag] == end) > 0)
-  
-  if (length(remove_rows) > 0) {
-    
-    M <- M[-remove_rows, , drop = FALSE]
-  }
+  matrix <- matrix[-which(matrix[, 1:mlag] == end, arr.ind = TRUE)[, 1], ]
+
   return(matrix)
 }
 
