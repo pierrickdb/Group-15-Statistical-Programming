@@ -1,5 +1,5 @@
 #=================================================================================
-#Add Raneems S3044929, Fagan S3015664, Pierrick de Boer S3034691
+#Add Raneem Alluhaydan S3044929, Fagan Ganbarli S3015664, Pierrick de Boer S3034691
 #Raneems Tasks: Task 1.4 Preprocessing
 #Fagans Tasks: Task 5, 6 Matrix and Unique
 #Pierricks Tasks: Task 1.1,1.2,1.3 7 & 8 Github, Read In, next_note, generate_music
@@ -27,14 +27,17 @@ preprocess <- function(music) {
 
 
     if (music[i] == "") {
+      
       #skip blank lines to avoid adding | to their end
       next
       
     }else if (music[i+1] == "") {  
+      
       #add || before a blank line
       music[i] <- paste(music[i], "||")
       
     }else{
+      
       #add | to the other lines
       music[i] <- paste(music[i], "|")
     }
@@ -53,6 +56,7 @@ preprocess <- function(music) {
 }
 
 music_clean <- preprocess(music= music_raw)
+
 
 #Input: preprocessed music 
 #Task: create a vector of unique notes
