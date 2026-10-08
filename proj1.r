@@ -24,12 +24,15 @@ preprocess <- function(music) {
   
   #go through each line 
   for(i in 1:(n-1)) {
-    
-    #add || before a blank line
-    
-    if (music[i+1] == "") {  
-      music[i] <- paste(music[i], "||")
+
+
+    if (music[i] == "") {
+      next
+
       
+    }else if (music[i+1] == "") {  
+      #add || before a blank line
+      music[i] <- paste(music[i], "||")
       
       
     }else{
