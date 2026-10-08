@@ -146,7 +146,6 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   return(next_token)
 }
 
-next_token <- next_note(key,M,w)
 
 #Input: start token, M and weights
 #Task: generate a vector with iteratively calling the next token and decode it into notes
