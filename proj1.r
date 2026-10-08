@@ -82,12 +82,12 @@ make_matrix <- function(tokens, end, mlag = 4) {
     data <- c(data, tokens[i:index]) 
   }
   #Create the matrix in column major order
-  matrix <- matrix(data = data, nrow = n_row, ncol = n_column)
+  matrix_ <- matrix(data = data, nrow = n_row, ncol = n_column)
   
   #Remove rows where "end" appears in the first mlag columns
-  matrix <- matrix[-which(matrix[, 1:mlag] == end, arr.ind = TRUE)[, 1], ]
+  matrix_ <- matrix_[-which(matrix_[, 1:mlag] == end, arr.ind = TRUE)[, 1], ]
 
-  return(matrix)
+  return(matrix_)
 }
 
 M <- make_matrix(tokens = tokens, end = which(notes=="||"), mlag = 4)
