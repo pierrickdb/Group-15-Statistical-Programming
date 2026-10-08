@@ -60,13 +60,13 @@ music_clean <- preprocess(music= music_raw)
 notes <- unique(music_clean)
 
 #Input: preprocessed music, unique notes
-#Task: creates a list of size length(music_clean) which referes to the token
+#Task: create a vector of token IDs that refers to each element of music_clean
 #Return: list of tokens
 tokens <- match(x = music_clean, table = notes)
 
-#Input: list of tokens and token of ||, mlag which is the amount of previous notes for determining the next note 
+#Input: list of tokens, mlag which is the amount of previous notes for determining the next note 
 #Task: create the function to build the matrix M
-#Return: Matrix M includes all combinations of sequences from 1 to mlag 
+#Return: Matrix M containing token sequences
 make_matrix <- function(tokens, end, mlag = 4) {
   
   #Determine the dimension of matrix M
@@ -84,7 +84,7 @@ make_matrix <- function(tokens, end, mlag = 4) {
   #Create the matrix in column major order
   matrix <- matrix(data = data, nrow = n_row, ncol = n_column)
   
-  #Remove all rows where " ||" appears except the last column
+  #Remove rows where "end" appears in the first mlag columns
   matrix <- matrix[-which(matrix[, 1:mlag] == end, arr.ind = TRUE)[, 1], ]
 
   return(matrix)
@@ -146,7 +146,6 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   return(next_token)
 }
 
-next_token <- next_note(key,M,w)
 
 #Input: start token, M and weights
 #Task: generate a vector with iteratively calling the next token and decode it into notes
