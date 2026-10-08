@@ -108,8 +108,8 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
   mc <- mlag - length(key) + 1
   
   #storage for candidate and its probability
-  cand = c()  
-  prob = c()
+  cand <- c()  
+  prob <- c()
   
   #consider all length form 1 to mlag keys for the next token
   while (mc <= mlag) {
@@ -149,8 +149,8 @@ next_note <- function(key, M, w = rep(1,length(M[1,])-1)){
 generate_music <- function(start, M, w = rep(1, ncol(M) - 1) ,notes){
 
   key <- start
-  amount_notes_used = 1
-  amount_bars_used = 0
+  amount_notes_used <- 1
+  amount_bars_used <- 0
   
   #add notes until we have 200 notes, 8 bars or the song is ending (||)
   while(amount_notes_used < 200 && amount_bars_used <8){
