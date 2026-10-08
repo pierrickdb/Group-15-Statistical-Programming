@@ -8,7 +8,7 @@
 #READ IN
 music_raw <- readLines("palestrina.txt")
 
-#Input: music data
+#Input: raw music data
 #Task: preprocess the music data
 #Return: cleaned music data
 preprocess <- function(music) {
