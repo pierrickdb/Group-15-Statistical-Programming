@@ -13,42 +13,31 @@ library(ggplot2)
 #a is a pattern
 firsthit <- function(x,a){
   
-  #impossible case if the toss is smaller then pattern
-  if(length(a)>length(x)){
-    return(NA)
+  #x must be a matrix now
+  if(!is.matrix(x)){
+    x <- matrix(x, nrow = 1)
   }
   
-  for (i in seq_along(x)){
-      #find start
-      if(x[i]==a[1]){
-        #now all values have to be the same
-        
-        #edge case
-        if (i + length(a) - 1 > length(x)) return(NA)
-        
-        for (j in seq_along(a)){
-
-          #same we look at the next
-          if(x[i]==a[j] && j == length(a)){
-            return(i)
-          }
-          #all values are the same
-          else if(x[i]==a[j]){
-            i <- i + 1
-          }
-          
-          #if not search the next strating value of that patter
-          else{
-            break
-          }
-          
-        }
-        
-      }
+  L <- ncol(x)
+  k <- length(a)
+  
+  #impossible case if the toss is smaller then pattern
+  if(k>L){
+    return(rep(NA, nrow(x)))
   }
+  
+  hit <- matrix(TRUE, nrow = nrow(x), ncol = L - k + 1)  
+  for (j in seq_along(a)){
+    hit <- hit & x[, j:(L - k + j), drop = FALSE] == a[j] 
+  }
+  
 
-  #not found 
-  return(NA)
+  #create return vector
+  start <- max.col(hit, ties.method = "first")
+  start[rowSums(hit) == 0] <- NA
+  
+
+  return(start + k - 1)
 }
 
 #returns a vector c(winne,tosses) where 1=player a and 0 player b and tosses is the number of duel 
@@ -96,5 +85,19 @@ duel <- function(a,b,p=0.5){
   }
 
 }
+
+
+
+pwin <- function(a,b,p = 0.5,nreps = 10000){
+  
+  
+  
+  
+  
+  
+  
+}
+  
+  
 
 
