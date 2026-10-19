@@ -27,10 +27,11 @@ firsthit <- function(x, a) {
   # Find the ending position of the first occurrence of pattern a
   # in each row of x.
   #
-  # Convert a vector into a matrix if necessary. Compare the pattern
-  # against every possible starting position and record the positions
-  # where all elements match. Return the ending position of the first
-  # match, or NA if the pattern does not occur.
+  # Task: 
+  #   Convert a vector into a matrix if necessary. Compare the pattern
+  #   against every possible starting position and record the positions
+  #   where all elements match. Return the ending position of the first
+  #   match, or NA if the pattern does not occur.
   #
   # Args:
   #   x: A vector or matrix containing coin tosses.
