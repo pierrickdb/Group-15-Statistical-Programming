@@ -67,76 +67,111 @@ firsthit <- function(x, a) {
   return(start + k - 1)
 }
 
-#returns a vector c(winne,tosses) where 1=player a and 0 player b and tosses is the number of duel 
-#generate tosses in blocks, extending the stream only while neither pattern has yet appeared
-sim_duels <- function(a,b,p=0.5,nreps = 1){
+
+# =============================================================================
+# 2. Simulate multiple duels
+# =============================================================================
+
+sim_duels <- function(a, b, p = 0.5, nreps = 1) {
+  # Simulate independent duels between patterns a and b.
+  #
+  # Generate tosses in blocks and check which pattern appears first.
+  # Retain the final k - 1 tosses of unfinished sequences between
+  # blocks so that patterns crossing block boundaries are detected.
+  # Store the outcomes of completed duels and continue with the
+  # remaining simulations.
+  #
+  # Args:
+  #   a: Binary pattern representing player A.
+  #   b: Binary pattern representing player B.
+  #   p: Probability of obtaining a 1 on each toss.
+  #   nreps: Number of independent duels to simulate.
+  #
+  # Returns:
+  #   A list containing the winner (1 for A, 0 for B) and the
+  #   total number of tosses for each duel.
   
   k <- length(a)
   
-  if(k!=length(b)){
+  if (k != length(b)) {
     stop("this is not a fair game!")
   }
+  
   if (all(a == b)) {
     stop("a and b are identical")
   }
   
-  #intitial time and block length
+  # Initialize the block length and simulation results.
   time <- 0
-  B <- 3*k
+  B <- 3 * k
   
   active <- 1:nreps
   winner <- rep(NA, nreps)
   tosses <- rep(NA, nreps)
   
-
-  while(length(active) > 0){
+  while (length(active) > 0) {
     
-    #create matrix block
-    if(time == 0){
-      W <- matrix(rbinom(nreps * B, size = 1, prob = p), nrow = nreps)
-    }
-    
-    else{
-      # letzte k-1 Spalten behalten (alle Zeilen)
-      keep <- W[, B - (k - 1) + seq_len(k - 1), drop = FALSE]
+    # Generate the initial block of tosses.
+    if (time == 0) {
+      W <- matrix(
+        rbinom(nreps * B, size = 1, prob = p),
+        nrow = nreps
+      )
       
-      # neuer Block: für jedes aktive Duell B-k+1 neue Würfe
-      W_new <- matrix(rbinom(nrow(keep) * (B - k + 1), size = 1, prob = p),
-                      nrow = nrow(keep))
+    } else {
+      # Retain the last k - 1 tosses from each active sequence.
+      keep <- W[
+        ,
+        B - (k - 1) + seq_len(k - 1),
+        drop = FALSE
+      ]
       
-      # Spalten nebeneinander hängen
+      # Generate new tosses for the unfinished duels.
+      W_new <- matrix(
+        rbinom(
+          nrow(keep) * (B - k + 1),
+          size = 1,
+          prob = p
+        ),
+        nrow = nrow(keep)
+      )
+      
+      # Append the new tosses to the retained sequence.
       W <- cbind(keep, W_new)
     }
     
-    #check if pattern appears
-    time_a <- firsthit(W,a) #(9,NA,10)
-    time_b <- firsthit(W,b) #(1,8,12)
+    # Find the first occurrence of each player's pattern.
+    time_a <- firsthit(W, a)
+    time_b <- firsthit(W, b)
     
-    a_wins <- !is.na(time_a) & (is.na(time_b) | time_a < time_b)#F,F,T
-    b_wins <- !is.na(time_b) & (is.na(time_a) | time_b < time_a)#T,T,F
+    # Identify the winner based on the earliest occurrence.
+    a_wins <- !is.na(time_a) &
+      (is.na(time_b) | time_a < time_b)
     
-    winner[active[a_wins]] <- 1               
+    b_wins <- !is.na(time_b) &
+      (is.na(time_a) | time_b < time_a)
+    
+    # Store the results of completed duels.
+    decided <- a_wins | b_wins
+    
+    hit_time <- pmin(time_a, time_b, na.rm = TRUE)
+    
+    winner[active[a_wins]] <- 1
     winner[active[b_wins]] <- 0
     
-    decided <- a_wins | b_wins
-    hit_time <- pmin(time_a, time_b, na.rm = TRUE) 
     tosses[active[decided]] <- time + hit_time[decided]
     
-    #now keep going with the rows that are not yes finished (NAvsNA)
+    # Remove completed duels from the active simulations.
     active <- active[!decided]
-    #now we can drop the once which are terminated in W and start the loop again. 
-    W <- W[!decided, , drop = FALSE] 
-
+    W <- W[!decided, , drop = FALSE]
     
-  
+    # Advance the number of newly generated tosses.
     time <- time + B - (k - 1)
-    
-    
-    
   }
+  
   return(list(winner = winner, tosses = tosses))
-
 }
+
 
 duel <- function(a,b,p=0.5){
   
