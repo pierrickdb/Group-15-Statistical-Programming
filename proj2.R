@@ -1,42 +1,69 @@
-#=================================================================================
-#Add Raneem Alluhaydan S3044929, Fagan Ganbarli S3015664, Pierrick de Boer S3034691
-#Raneems Tasks: 
-#Fagans Tasks: 
-#Pierricks Tasks: Githubsetup Task 1 , 2, 3%
-#=================================================================================
+# =============================================================================
+# Coin-Toss Pattern Duel
+#
+# Authors:
+# Raneem Alluhaydan S3044929
+# Fagan Ganbarli
+# Pierrick de Boer S3034691
+#
+# Overview:
+# This script simulates duels between two binary patterns in a sequence
+# of coin tosses. It identifies which pattern appears first and estimates
+# the probability that player A wins through repeated simulations.
+#
+# Main functions:
+# 1. firsthit(): Find the first occurrence of a pattern.
+# 2. sim_duels(): Simulate multiple duels in batches.
+# 3. duel(): Simulate a single duel.
+# 4. pwin(): Estimate player A's winning probability.
+# =============================================================================
 
 
-#install.packages("ggplot2") only if you did not install that yet 
-library(ggplot2)
+# =============================================================================
+# 1. Find the first occurrence of a pattern
+# =============================================================================
 
-#x is the toss stream
-#a is a pattern
-firsthit <- function(x,a){
+firsthit <- function(x, a) {
+  # Find the ending position of the first occurrence of pattern a
+  # in each row of x.
+  #
+  # Convert a vector into a matrix if necessary. Compare the pattern
+  # against every possible starting position and record the positions
+  # where all elements match. Return the ending position of the first
+  # match, or NA if the pattern does not occur.
+  #
+  # Args:
+  #   x: A vector or matrix containing coin tosses.
+  #   a: The binary pattern to search for.
+  #
+  # Returns:
+  #   The ending position of the first occurrence in each row,
+  #   or NA if no occurrence is found.
   
-  #x must be a matrix now
-  if(!is.matrix(x)){
+  if (!is.matrix(x)) {
     x <- matrix(x, nrow = 1)
   }
   
   L <- ncol(x)
   k <- length(a)
   
-  #impossible case if the toss is smaller then pattern
-  if(k>L){
+  # A pattern longer than the sequence cannot occur.
+  if (k > L) {
     return(rep(NA, nrow(x)))
   }
   
-  hit <- matrix(TRUE, nrow = nrow(x), ncol = L - k + 1)  
-  for (j in seq_along(a)){
-    hit <- hit & x[, j:(L - k + j), drop = FALSE] == a[j] 
+  # Check every possible starting position.
+  hit <- matrix(TRUE, nrow = nrow(x), ncol = L - k + 1)
+  
+  for (j in seq_along(a)) {
+    hit <- hit & x[, j:(L - k + j), drop = FALSE] == a[j]
   }
   
-
-  #create return vector
+  # Find the first matching position in each row.
   start <- max.col(hit, ties.method = "first")
   start[rowSums(hit) == 0] <- NA
   
-
+  # Convert starting positions into ending positions.
   return(start + k - 1)
 }
 
