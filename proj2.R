@@ -173,12 +173,27 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
 }
 
 
-duel <- function(a,b,p=0.5){
+
+# =============================================================================
+# 3. Simulate a single duel
+# =============================================================================
+
+duel <- function(a, b, p = 0.5) {
+  # Simulate one duel by calling sim_duels() with a single repetition.
+  #
+  # Args:
+  #   a: Binary pattern representing player A.
+  #   b: Binary pattern representing player B.
+  #   p: Probability of obtaining a 1 on each toss.
+  #
+  # Returns:
+  #   A vector containing the winner and the total number of tosses.
   
-  list = sim_duels(a,b,p,nreps=1)
+  result <- sim_duels(a, b, p, nreps = 1)
   
-  return(c(list[[1]], list[[2]]))
+  return(c(result[[1]], result[[2]]))
 }
+
 
 
 
