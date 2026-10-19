@@ -197,15 +197,32 @@ duel <- function(a, b, p = 0.5) {
 
 
 
-pwin <- function(a,b,p = 0.5,nreps = 10000){
+# =============================================================================
+# 4. Estimate player A's winning probability
+# =============================================================================
+
+pwin <- function(a, b, p = 0.5, nreps = 10000) {
+  # Estimate player A's probability of winning through simulation.
+  #
+  # Simulate independent duels and calculate the proportion won
+  # by player A. Since wins are represented by 1 and losses by 0,
+  # the mean of the winner vector estimates the winning probability.
+  #
+  # Args:
+  #   a: Binary pattern representing player A.
+  #   b: Binary pattern representing player B.
+  #   p: Probability of obtaining a 1 on each toss.
+  #   nreps: Number of independent duels to simulate.
+  #
+  # Returns:
+  #   The estimated probability that player A wins.
   
-  list <- sim_duels(a,b,p,nreps)
+  result <- sim_duels(a, b, p, nreps)
   
-  p_a_wins <- sum(list[[1]]) / length(list[[1]])
+  p_a_wins <- sum(result[[1]]) / length(result[[1]])
   
   return(p_a_wins)
 }
-  
   
 
 
