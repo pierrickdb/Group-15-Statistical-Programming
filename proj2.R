@@ -12,16 +12,16 @@
 # the probability that player A wins through repeated simulations.
 #
 # Main functions:
-# 1. firsthit(): Find the first occurrence of a pattern.
-# 2. sim_duels(): Simulate multiple duels in batches.
-# 3. duel(): Simulate a single duel.
-# 4. pwin(): Estimate player A's winning probability.
+# 1. firsthit(): Find the first occurrence of a pattern. (Pierrick)
+# 2. sim_duels(): Simulate multiple duels in batches.(Pierrick)
+# 3. duel(): Simulate a single duel. (Pierrick)
+# 4. pwin(): Estimate player A's winning probability.(Pierrick)
+# 5. 
+# 6. 
+# 7.
+# 8.
 # =============================================================================
 
-
-# =============================================================================
-# 1. Find the first occurrence of a pattern
-# =============================================================================
 
 firsthit <- function(x, a) {
   # Find the ending position of the first occurrence of pattern a
@@ -67,10 +67,6 @@ firsthit <- function(x, a) {
   return(start + k - 1)
 }
 
-
-# =============================================================================
-# 2. Simulate multiple duels
-# =============================================================================
 
 sim_duels <- function(a, b, p = 0.5, nreps = 1) {
   # Simulate independent duels between patterns a and b.
@@ -173,11 +169,6 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
 }
 
 
-
-# =============================================================================
-# 3. Simulate a single duel
-# =============================================================================
-
 duel <- function(a, b, p = 0.5) {
   # Simulate one duel by calling sim_duels() with a single repetition.
   #
@@ -195,11 +186,6 @@ duel <- function(a, b, p = 0.5) {
 }
 
 
-
-
-# =============================================================================
-# 4. Estimate player A's winning probability
-# =============================================================================
 
 pwin <- function(a, b, p = 0.5, nreps = 10000) {
   # Estimate player A's probability of winning through simulation.
