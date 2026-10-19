@@ -71,11 +71,12 @@ firsthit <- function(x, a) {
 sim_duels <- function(a, b, p = 0.5, nreps = 1) {
   # Simulate independent duels between patterns a and b.
   #
-  # Generate tosses in blocks and check which pattern appears first.
-  # Retain the final k - 1 tosses of unfinished sequences between
-  # blocks so that patterns crossing block boundaries are detected.
-  # Store the outcomes of completed duels and continue with the
-  # remaining simulations.
+  # Task: 
+  #   Generate tosses in blocks and check which pattern appears first.
+  #   Retain the final k - 1 tosses of unfinished sequences between
+  #   blocks so that patterns crossing block boundaries are detected.
+  #   Store the outcomes of completed duels and continue with the
+  #   remaining simulations.
   #
   # Args:
   #   a: Binary pattern representing player A.
@@ -190,9 +191,10 @@ duel <- function(a, b, p = 0.5) {
 pwin <- function(a, b, p = 0.5, nreps = 10000) {
   # Estimate player A's probability of winning through simulation.
   #
-  # Simulate independent duels and calculate the proportion won
-  # by player A. Since wins are represented by 1 and losses by 0,
-  # the mean of the winner vector estimates the winning probability.
+  # Task:
+  #   Simulate independent duels and calculate the proportion won
+  #   by player A. Since wins are represented by 1 and losses by 0,
+  #   the mean of the winner vector estimates the winning probability.
   #
   # Args:
   #   a: Binary pattern representing player A.
