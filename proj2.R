@@ -34,9 +34,9 @@
 # once and return the position where the first matching window ends.
 
 # Input:
-# x = A toss stream, either a vector or a matrix with one
+# x = A 0/1 toss stream, either a vector or a matrix with one
 #     stream per row.
-# a = A pattern of length k.
+# a = A 0/1 pattern of length k.
 
 # Output:
 # The toss at which the pattern is first completed in each row,
@@ -90,7 +90,7 @@ firsthit <- function(x, a) {
 # Input:
 # a = Binary pattern of player A.
 # b = Binary pattern of player B, distinct from a and of equal length.
-# p = The probability of a head
+# p = The probability of a head (0 < p < 1).
 # nreps = The number of independent duels to simulate.
 
 # Output:
@@ -198,7 +198,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
 # Input:
 # a = Binary pattern of player A.
 # b = Binary pattern of player B.
-# p = The probability of a head
+# p = The probability of a head (0 < p < 1).
 
 # Output:
 # A vector c(winner, tosses), where winner is 1 if A wins and 0
@@ -226,7 +226,7 @@ duel <- function(a, b, p = 0.5) {
 # Input:
 # a = Binary pattern of player A.
 # b = Binary pattern of player B.
-# p = The probability of a head
+# p = The probability of a head (0 < p < 1).
 # nreps = The number of independent duels to simulate.
 
 # Output:
@@ -313,7 +313,7 @@ ewait <- function(a, p = 0.5) {
 
 # Input:
 # k = The length of each binary pattern.
-# p = The probability of a head
+# p = The probability of a head (0 < p < 1).
 # nreps = The number of simulated duels for each pair..
 
 # Output:
@@ -370,6 +370,22 @@ pmat <- function(k, p = 0.5, nreps = 10000) {
 
 
 # Task 1: Test firsthit() on a stream that can be checked by hand.
+
+# Idea:
+# Confirm that firsthit() returns the correct ending position
+# for patterns whose first occurrence is known in advance.
+
+# Input:
+# x = The toss stream H T T H T H H H T, coded as 1 0 0 1 0 1 1 1 0.
+# Patterns 101 (HTH), 011 (THH) and 000 (TTT).
+
+# Output:
+# The position at which each pattern is first completed.
+
+# Method:
+# HTH first occupies positions 4-6, so the expected result is 6.
+# THH first occupies positions 5-7, so the expected result is 7.
+# TTT does not appear in the stream, so the expected result is NA.
 
 x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
 

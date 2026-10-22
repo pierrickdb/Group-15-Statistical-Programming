@@ -1,0 +1,327 @@
+# =============================================================================
+# Coin-Toss Pattern Duel
+#
+# Authors:
+# Raneem Alluhaydan S3044929
+# Fagan Ganbarli
+# Pierrick de Boer S3034691
+#
+# Overview:
+# This script simulates duels between two binary patterns in a sequence
+# of coin tosses. It identifies which pattern appears first and estimates
+# the probability that player A wins through repeated simulations.
+#
+# Main functions:
+# 1. firsthit(): Find the first occurrence of a pattern. (Pierrick)
+# 2. sim_duels(): Simulate multiple duels in batches.(Pierrick)
+# 3. duel(): Simulate a single duel. (Pierrick)
+# 4. pwin(): Estimate player A's winning probability.(Pierrick)
+# 5. 
+# 6. 
+# 7.
+# 8.
+# =============================================================================
+
+
+firsthit <- function(x, a) {
+  # Find the ending position of the first occurrence of pattern a
+  # in each row of x.
+  #
+  # Convert a vector into a matrix if necessary. Compare the pattern
+  # against every possible starting position and record the positions
+  # where all elements match. Return the ending position of the first
+  # match, or NA if the pattern does not occur.
+  #
+  # Args:
+  #   x: A vector or matrix containing coin tosses.
+  #   a: The binary pattern to search for.
+  #
+  # Returns:
+  #   The ending position of the first occurrence in each row,
+  #   or NA if no occurrence is found.
+  
+  if (!is.matrix(x)) {
+    x <- matrix(x, nrow = 1)
+  }
+  
+  L <- ncol(x)
+  k <- length(a)
+  
+  # A pattern longer than the sequence cannot occur.
+  if (k > L) {
+    return(rep(NA, nrow(x)))
+  }
+  
+  # Check every possible starting position.
+  hit <- matrix(TRUE, nrow = nrow(x), ncol = L - k + 1)
+  
+  for (j in seq_along(a)) {
+    hit <- hit & x[, j:(L - k + j), drop = FALSE] == a[j]
+  }
+  
+  # Find the first matching position in each row.
+  start <- max.col(hit, ties.method = "first")
+  start[rowSums(hit) == 0] <- NA
+  
+  # Convert starting positions into ending positions.
+  return(start + k - 1)
+}
+
+
+
+sim_duels <- function(a, b, p = 0.5, nreps = 1) {
+  # Simulate independent duels between patterns a and b.
+  #
+  # Generate tosses in blocks and check which pattern appears first.
+  # Retain the final k - 1 tosses of unfinished sequences between
+  # blocks so that patterns crossing block boundaries are detected.
+  # Store the outcomes of completed duels and continue with the
+  # remaining simulations.
+  #
+  # Args:
+  #   a: Binary pattern representing player A.
+  #   b: Binary pattern representing player B.
+  #   p: Probability of obtaining a 1 on each toss.
+  #   nreps: Number of independent duels to simulate.
+  #
+  # Returns:
+  #   A list containing the winner (1 for A, 0 for B) and the
+  #   total number of tosses for each duel.
+  
+  k <- length(a)
+  
+  if (k != length(b)) {
+    stop("this is not a fair game!")
+  }
+  
+  if (all(a == b)) {
+    stop("a and b are identical")
+  }
+  
+  # Initialize the block length and simulation results.
+  time <- 0
+  B <- 3 * k
+  
+  active <- 1:nreps
+  winner <- rep(NA, nreps)
+  tosses <- rep(NA, nreps)
+  
+  while (length(active) > 0) {
+    
+    # Generate the initial block of tosses.
+    if (time == 0) {
+      W <- matrix(
+        rbinom(nreps * B, size = 1, prob = p),
+        nrow = nreps
+      )
+      
+    } else {
+      # Retain the last k - 1 tosses from each active sequence.
+      keep <- W[
+        ,
+        B - (k - 1) + seq_len(k - 1),
+        drop = FALSE
+      ]
+      
+      # Generate new tosses for the unfinished duels.
+      W_new <- matrix(
+        rbinom(
+          nrow(keep) * (B - k + 1),
+          size = 1,
+          prob = p
+        ),
+        nrow = nrow(keep)
+      )
+      
+      # Append the new tosses to the retained sequence.
+      W <- cbind(keep, W_new)
+    }
+    
+    # Find the first occurrence of each player's pattern.
+    time_a <- firsthit(W, a)
+    time_b <- firsthit(W, b)
+    
+    # Identify the winner based on the earliest occurrence.
+    a_wins <- !is.na(time_a) &
+      (is.na(time_b) | time_a < time_b)
+    
+    b_wins <- !is.na(time_b) &
+      (is.na(time_a) | time_b < time_a)
+    
+    # Store the results of completed duels.
+    decided <- a_wins | b_wins
+    
+    hit_time <- pmin(time_a, time_b, na.rm = TRUE)
+    
+    winner[active[a_wins]] <- 1
+    winner[active[b_wins]] <- 0
+    
+    tosses[active[decided]] <- time + hit_time[decided]
+    
+    # Remove completed duels from the active simulations.
+    active <- active[!decided]
+    W <- W[!decided, , drop = FALSE]
+    
+    # Advance the number of newly generated tosses.
+    time <- time + B - (k - 1)
+  }
+  
+  return(list(winner = winner, tosses = tosses))
+}
+
+
+
+duel <- function(a, b, p = 0.5) {
+  # Simulate one duel by calling sim_duels() with a single repetition.
+  #
+  # Args:
+  #   a: Binary pattern representing player A.
+  #   b: Binary pattern representing player B.
+  #   p: Probability of obtaining a 1 on each toss.
+  #
+  # Returns:
+  #   A vector containing the winner and the total number of tosses.
+  
+  result <- sim_duels(a, b, p, nreps = 1)
+  
+  return(c(result[[1]], result[[2]]))
+}
+
+
+
+pwin <- function(a, b, p = 0.5, nreps = 10000) {
+  # Estimate player A's probability of winning through simulation.
+  #
+  # Simulate independent duels and calculate the proportion won
+  # by player A. Since wins are represented by 1 and losses by 0,
+  # the mean of the winner vector estimates the winning probability.
+  #
+  # Args:
+  #   a: Binary pattern representing player A.
+  #   b: Binary pattern representing player B.
+  #   p: Probability of obtaining a 1 on each toss.
+  #   nreps: Number of independent duels to simulate.
+  #
+  # Returns:
+  #   The estimated probability that player A wins.
+  
+  result <- sim_duels(a, b, p, nreps)
+  
+  p_a_wins <- sum(result[[1]]) / length(result[[1]])
+  
+  return(p_a_wins)
+}
+  
+
+
+ewait <- function(a, p = 0.5) {
+  k <- length(a)
+  pro <- 0
+  
+  if (k <= 0) {
+    stop("k can not be equal or less than 0")  
+  }
+  
+  if (any(a != 0 & a != 1) || anyNA(a)) {
+    stop("a can only contain 0 and 1")  
+  }
+  
+  if (any(p <= 0 | p >= 1) || is.na(p)) {
+    stop("p can not be equal or less than 0 and equal or higher than 1")  
+  }
+  
+  for (j in 1:k) {
+    
+    if (all(a[1:j] == a[(k-j+1):k])) {
+      numh <- sum(a[1:j] == 1)
+      bin <- (p^numh)*((1-p)^(j-numh))
+      pro <- pro + (1 / bin)
+    }
+  }
+  return(pro)
+}
+
+k = 3
+
+pmat <- function(k, p = 0.5, nreps = 10000) {
+  
+  pattern <- expand.grid(rep(list(0:1), k))
+  
+  pattern <- pattern[
+    do.call(order, as.data.frame(pattern)), , drop = FALSE]
+  
+  pattern <- as.matrix(pattern)
+  
+  M <- matrix(NA, nrow = 2^k, ncol = 2^k)
+  
+  n <- nrow(pattern)
+  
+  rownames(M) <- apply(pattern, 1, paste, collapse = "")
+  colnames(M) <- apply(pattern, 1, paste, collapse = "")
+  
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i != j) {
+        M[i, j] <- pwin(
+          pattern[i, ],
+          pattern[j, ],
+          p = p,
+          nreps = nreps
+        )
+      }
+    }
+  }
+  return(M)
+}
+
+best_reply_table <- function(m) {
+  
+  m <- replace(m, is.na(m), -Inf)
+  
+  best_reply <- apply(m, 2, function(x) {
+    which.max(x)
+  })
+  
+  probability <- numeric(nrow(m))
+  
+  for (i in seq_len(nrow(m))) {
+    probability[i] <- m[i, best_reply[i]]
+  }
+  
+  table <- data.frame(
+    Pattern = rownames(m),
+    Best_reply = rownames(m)[best_reply],
+    Probablity = 1 - probability
+  )
+  
+  return(table)
+}
+
+
+even_pairs <- function(m, tolerance = 0.05) {
+  
+  Data_frame <- data.frame(
+    pattern1 = character(),
+    pattern2 = character(),
+    probability = numeric()
+  )
+  
+  for (i in seq_len(nrow(m))) {
+    for (j in seq_len(ncol(m))) {
+      if (j > i && !is.na(m[i, j]) && abs(m[i, j] - 0.5) <= tolerance) {
+        Data_frame <- rbind(
+          Data_frame,
+          data.frame(
+            pattern1 = rownames(m)[i],
+            pattern2 = colnames(m)[j],
+            probability = m[i, j]
+          )
+        )
+      }
+    }
+  }
+  row.names(Data_frame) <- NULL
+  return(Data_frame)
+}
+
+
