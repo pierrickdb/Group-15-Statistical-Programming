@@ -562,7 +562,7 @@ find_cycle <- function(m, min_probability = 0.60) {
     }
   }
   
-  # Return a message if no cycle exists.
+  # message dos not exist 
   return("No cycle found.")
 }
 
