@@ -5,52 +5,50 @@
 # Pierrick de Boer: S3034691
 # Fagan Ganbarli: S3015664
 # Raneem Alluhaydan: S3044929
-
-
+#
 # Contributions:
-# Pierrick de Boer ( 33%): Task 1-3
-# Fagan Ganbarli ( 33%): Task 4-5
-# Raneem Alluhaydan ( 33%): Task 6-7
+# Pierrick de Boer (33%): Task 1-3
+# Fagan Ganbarli (33%): Task 4-5
+# Raneem Alluhaydan (33%): Task 6-7
 #
 # Overview:
 # This script simulates duels between two binary patterns in a sequence
 # of coin tosses. It identifies which pattern appears first and estimates
 # the probability that player A wins through repeated simulations.
+# Heads are coded as 1 and tails as 0.
 #
 # Main functions:
 # 1. firsthit(): Find the first occurrence of a pattern.
 # 2. sim_duels(): Simulate multiple duels.
 # 3. duel(): Simulate one duel.
 # 4. pwin(): Estimate the probability that a pattern wins.
-# 5. ewait(): Calculate the expected waiting time of a pattern.
-# 6. pmat(): Calculate win probabilities between patterns.
-# 7. find_cycle(): Find a non-transitive cycle of patterns.
+# 5. ewait(): Calculate the exact expected waiting time of a pattern.
+# 6. mc_ewait(): Estimate the expected waiting time by simulation.
+# 7. pmat(): Calculate win probabilities between all patterns.
+# 8. find_cycle(): Find a non-transitive cycle of patterns.
 # =============================================================================
+
 
 # Task 1: Find the first occurrence of a pattern in a toss stream.
 
-# Idea:
-# Compare the pattern with every window of k consecutive tosses at
-# once and return the position where the first matching window ends.
-
-# Input:
-# x = A toss stream, either a vector or a matrix with one
-#     stream per row.
-# a = A pattern of length k.
-
-# Output:
-# The toss at which the pattern is first completed in each row,
-# or NA if the pattern does not appear.
-
-# Method:
-# Convert a vector into a one-row matrix.
-# Build a logical matrix of all possible starting positions and
-# compare each element of the pattern with the matching shifted
-# columns of x.
-# Take the first matching start in each row and add k - 1 to
-# obtain the ending position.
-
 firsthit <- function(x, a) {
+  # Finds the toss at which pattern a is completed for the first time
+  # in each toss stream.
+  #
+  # Inputs:
+  #   x: toss stream, either a vector or a matrix with one stream per row
+  #   a: binary pattern of length k
+  #
+  # Output:
+  #   The ending position of the first occurrence in each row,
+  #   or NA if the pattern does not appear.
+  #
+  # Method:
+  #   Convert a vector into a one-row matrix. Build a logical matrix
+  #   of all possible starting positions and compare each element of
+  #   the pattern with the matching shifted columns of x. Take the
+  #   first matching start in each row and add k - 1 to obtain the
+  #   ending position.
   
   # Treat a single stream as a matrix with one row.
   if (!is.matrix(x)) {
@@ -80,7 +78,8 @@ firsthit <- function(x, a) {
   return(start + k - 1)
 }
 
-# Test firsthit() function.
+# Test firsthit() on the stream H T T H T H H H T, which can be
+# checked by hand: HTH ends at toss 6, THH at toss 7, TTT never occurs.
 x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
 
 firsthit(x, c(1, 0, 1))   # Expected: 6
@@ -90,29 +89,27 @@ firsthit(x, c(0, 0, 0))   # Expected: NA
 
 # Task 2: Simulate duels between two patterns.
 
-# Idea:
-# Toss a shared coin stream for many duels at once and stop each
-# duel as soon as one of the two patterns appears.
-
-# Input:
-# a = Binary pattern of player A.
-# b = Binary pattern of player B, distinct from a and of equal length.
-# p = The probability of a head
-# nreps = The number of independent duels to simulate.
-
-# Output:
-# A list containing the winner of each duel (1 for A, 0 for B)
-# and the number of tosses each duel took.
-
-# Method:
-# Check that the patterns have equal length and are distinct.
-# Generate tosses in blocks, one row per duel, and find the first
-# occurrence of each pattern with firsthit().
-# Store the results of decided duels and continue only with the
-# undecided ones. Keep the last k - 1 tosses of each undecided row
-# so that patterns crossing block boundaries are detected.
-
 sim_duels <- function(a, b, p = 0.5, nreps = 1) {
+  # Simulates independent duels in which both players watch the same
+  # coin stream, and stops each duel as soon as one pattern appears.
+  #
+  # Inputs:
+  #   a: binary pattern of player A
+  #   b: binary pattern of player B, distinct from a and of equal length
+  #   p: probability of a head (0 < p < 1)
+  #   nreps: number of independent duels to simulate
+  #
+  # Output:
+  #   A list containing the winner of each duel (1 for A, 0 for B)
+  #   and the number of tosses each duel took.
+  #
+  # Method:
+  #   Check that the patterns have equal length and are distinct.
+  #   Generate tosses in blocks, one row per duel, and find the first
+  #   occurrence of each pattern with firsthit(). Store the results of
+  #   decided duels and continue only with the undecided ones. Keep the
+  #   last k - 1 tosses of each undecided row so that patterns crossing
+  #   block boundaries are detected.
   
   k <- length(a)
   
@@ -194,24 +191,22 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
 
 # Task 2: Simulate a single duel.
 
-# Idea:
-# A single duel is a special case of sim_duels() with one repetition,
-# so the simulation code is shared rather than repeated.
-
-# Input:
-# a = Binary pattern of player A.
-# b = Binary pattern of player B.
-# p = The probability of a head
-
-# Output:
-# A vector c(winner, tosses), where winner is 1 if A wins and 0
-# if B wins, and tosses is the number of tosses the duel took.
-
-# Method:
-# Call sim_duels() with nreps = 1 and combine both results
-# into one vector.
-
 duel <- function(a, b, p = 0.5) {
+  # Simulates one duel. A single duel is a special case of sim_duels()
+  # with one repetition, so the simulation code is shared.
+  #
+  # Inputs:
+  #   a: binary pattern of player A
+  #   b: binary pattern of player B
+  #   p: probability of a head (0 < p < 1)
+  #
+  # Output:
+  #   A vector c(winner, tosses), where winner is 1 if A wins and 0
+  #   if B wins, and tosses is the number of tosses the duel took.
+  #
+  # Method:
+  #   Call sim_duels() with nreps = 1 and combine both results
+  #   into one vector.
   
   result <- sim_duels(a, b, p, nreps = 1)
   
@@ -221,25 +216,22 @@ duel <- function(a, b, p = 0.5) {
 
 # Task 3: Estimate the probability that one pattern wins a duel.
 
-# Idea:
-# Estimate the win probability of player A as the proportion of
-# simulated duels that A wins.
-
-# Input:
-# a = Binary pattern of player A.
-# b = Binary pattern of player B.
-# p = The probability of a head (0 < p < 1).
-# nreps = The number of independent duels to simulate.
-
-# Output:
-# The estimated probability that pattern a appears before pattern b.
-
-# Method:
-# Simulate all duels at once with sim_duels().
-# Since a win for A is stored as 1 and a loss as 0, the mean of
-# the winner vector estimates the win probability.
-
 pwin <- function(a, b, p = 0.5, nreps = 10000) {
+  # Estimates the probability that pattern a appears before pattern b.
+  #
+  # Inputs:
+  #   a: binary pattern of player A
+  #   b: binary pattern of player B
+  #   p: probability of a head (0 < p < 1)
+  #   nreps: number of independent duels to simulate
+  #
+  # Output:
+  #   The estimated probability that player A wins.
+  #
+  # Method:
+  #   Simulate all duels at once with sim_duels(). Since a win for A
+  #   is stored as 1 and a loss as 0, the mean of the winner vector
+  #   estimates the win probability.
   
   # Simulate the duels.
   result <- sim_duels(a, b, p, nreps)
@@ -251,27 +243,24 @@ pwin <- function(a, b, p = 0.5, nreps = 10000) {
 }
 
 
-# Task 4.a: Calculating the exact expected waiting time for a pattern.
-
-# Idea:
-# The expected waiting time depends on the lengths for which
-# the first and last j elements of a pattern match. Each matching
-# overlap contributes the reciprocal of the probability of its prefix.
-
-# Input:
-# a = A non-empty binary vector representing the pattern.
-# p = The probability of a head (0 < p < 1).
-
-# Output:
-# The exact expected waiting time until the pattern appears. 
-
-# Method:
-# Check that the inputs are valid.
-# Examine every possible overlap length. If the first and last j
-# elements match, calculate the prefix probability and add its
-# reciprocal to the expected waiting time.
+# Task 4(a): Calculate the exact expected waiting time for a pattern.
 
 ewait <- function(a, p = 0.5) {
+  # Calculates the exact expected waiting time of a single pattern
+  # from its self-overlap structure.
+  #
+  # Inputs:
+  #   a: non-empty binary vector representing the pattern
+  #   p: probability of a head (0 < p < 1)
+  #
+  # Output:
+  #   The exact expected number of tosses until the pattern appears.
+  #
+  # Method:
+  #   Check that the inputs are valid. Examine every overlap length j
+  #   from 1 to k. If the first and last j elements match, calculate
+  #   the probability of the first j outcomes and add its reciprocal
+  #   to the expected waiting time.
   
   # Check that the pattern is a non-empty binary vector.
   if (length(a) == 0 || any(a != 0 & a != 1) || anyNA(a)) {
@@ -306,7 +295,8 @@ ewait <- function(a, p = 0.5) {
   return(expected_wait)
 }
 
-# Check the expected waiting times for a fair coin.
+# Check the exact expected waiting times of the length-2 patterns
+# for a fair coin (expected: 6 for HH and TT, 4 for HT and TH).
 patterns <- list(
   HH = c(1, 1),
   TT = c(0, 0),
@@ -317,33 +307,33 @@ patterns <- list(
 exact <- sapply(patterns, ewait)
 print(exact)
 
-# Task 4.b: Calculate the expected waiting time using Monte Carlo simulation.
 
-# Idea:
-# The function simulates coin tosses until the given pattern appears.
-# It repeats this process nreps times and returns the average.
-
-# Input:
-# a = A binary pattern.
-# p = Probability of getting a head.
-# nreps = Number of simulations.
-
-# Output:
-# Monte-Carlo estimated expected waiting time.
-
-# Method:
-# Generate tosses and use firsthit() to find the pattern.
-# Calculate the average of results.
-# Compare them with the exact expected waiting time.
+# Task 4(b): Estimate the expected waiting time by simulation.
 
 mc_ewait <- function(a, p = 0.5, nreps = 10000) {
+  # Estimates the expected waiting time of a pattern by Monte Carlo
+  # simulation, as a check on ewait().
+  #
+  # Inputs:
+  #   a: binary pattern
+  #   p: probability of a head (0 < p < 1)
+  #   nreps: number of simulated waiting times
+  #
+  # Output:
+  #   The Monte Carlo estimate of the expected waiting time.
+  #
+  # Method:
+  #   For each repetition, add one toss at a time to the stream and
+  #   use firsthit() to check whether the pattern has appeared. Record
+  #   the waiting time once it appears and return the average over
+  #   all repetitions.
   
   waiting_times <- numeric(nreps)
   
-  # Run simulation nreps times. 
+  # Run the simulation nreps times.
   for (i in seq_len(nreps)) {
     
-    # Create an empty vector.
+    # Start with an empty stream.
     stream <- integer(0)
     
     repeat {
@@ -351,10 +341,10 @@ mc_ewait <- function(a, p = 0.5, nreps = 10000) {
       # Add one toss to the stream.
       stream <- c(stream, rbinom(1, 1, p))
       
-      # Check whether the pattern has appeard.
+      # Check whether the pattern has appeared.
       hit <- firsthit(stream, a)
       
-      # If pattern has appeard, stop the repeat.
+      # Stop once the pattern has appeared.
       if (!is.na(hit[1])) {
         waiting_times[i] <- hit[1]
         break
@@ -365,8 +355,8 @@ mc_ewait <- function(a, p = 0.5, nreps = 10000) {
   return(mean(waiting_times))
 }
 
-# Compare Monte Carlo estimates with the exact waiting values 
-# for patterns of length 2 with a fair coin.
+# Compare the Monte Carlo estimates with the exact waiting times
+# for the length-2 patterns and a fair coin.
 set.seed(7)
 mc <- sapply(patterns,  mc_ewait, p = 0.5, nreps = 10000)
 
@@ -378,13 +368,12 @@ results <- data.frame(
 
 print(results)
 
-# The results show that the Monte Carlo estimates are close to the 
-# exact expected waiting times for all four patterns. For a fair 
-# coin, the expected waiting times are 6 tosses for HH and TT, 
-# and 4 tosses for HT and TH. 
+# The Monte Carlo estimates are close to the exact expected waiting
+# times for all four patterns: 6 tosses for HH and TT, and 4 tosses
+# for HT and TH.
 
-# Compare Monte Carlo estimates with the exact waiting values 
-# for a biased coin: p is not equal to 0.5.
+# Compare the Monte Carlo estimate with the exact waiting time
+# for a biased coin (p = 0.7).
 exact_biased <- ewait(c(1, 1, 0), p = 0.7)
 mc_biased <- mc_ewait(c(1, 1, 0), p = 0.7, nreps = 10000)
 
@@ -396,34 +385,33 @@ Biased_coin <- data.frame(
 
 print(Biased_coin)
 
-# For a biased coin with p = 0.7, the exact expected waiting time 
-# for HHT is approximately 6.8027, while the Monte Carlo estimate 
-# is 6.8034. These results confirm that the simulation provides 
-# a good approximation of the exact expected waiting time.
+# For p = 0.7, the exact expected waiting time for HHT is about
+# 6.8027 and the Monte Carlo estimate is 6.8034, so the simulation
+# confirms the exact result for a biased coin as well.
 
 
 # Task 5: Calculate the matrix of pairwise win probabilities.
 
-# Idea:
-# Estimate how often each pattern beats every other pattern using 
-# repeated simulations, and store the result probabilities in a matrix. 
-
-# Input:
-# k = The length of each binary pattern.
-# p = The probability of a head (0 < p < 1).
-# nreps = The number of simulated duels for each pair..
-
-# Output:
-# A 2^k by 2^k matrix of estimated win probabilities.
-# The diagonal entries are NA, because a pattern cannot duel itself.
-
-# Method:
-# Generate all possible patterns of length k and arrange them in
-# lexicographic order, with 0 before 1.
-# Estimate the win probability for every distinct pattern using 
-# the pwin() function and store the result in matrix M.
-
 pmat <- function(k, p = 0.5, nreps = 10000) {
+  # Estimates how often each pattern of length k beats every other
+  # pattern of the same length in a duel.
+  #
+  # Inputs:
+  #   k: length of each binary pattern
+  #   p: probability of a head (0 < p < 1)
+  #   nreps: number of simulated duels for each pair
+  #
+  # Output:
+  #   A 2^k by 2^k matrix in which entry (i, j) is the estimated
+  #   probability that pattern i beats pattern j. The diagonal is NA,
+  #   because a pattern cannot duel itself. Rows and columns are
+  #   labelled by the patterns, e.g. "010".
+  #
+  # Method:
+  #   Generate all 2^k patterns and sort them in lexicographic order,
+  #   with 0 before 1 (000, 001, 010, ..., 111). Estimate the win
+  #   probability of every ordered pair of distinct patterns with
+  #   pwin() and store it in the matrix.
   
   # Generate all possible binary patterns of length k.
   pattern <- expand.grid(rep(list(0:1), k))
@@ -464,32 +452,16 @@ pmat <- function(k, p = 0.5, nreps = 10000) {
 }
 
 
-
 # Task 5(a): Find the best reply and its win probability for each pattern.
+#
+# For each pattern (column of M), the best reply is the pattern that
+# beats it with the highest probability. The diagonal NA values are
+# replaced by -Inf so that a pattern cannot be its own best reply.
 
-# Idea:
-# For each pattern, find the pattern that beats it with the 
-# highest probability and display the results in a table.
-
-# Input:
-# M = The matrix of win probabilities created by pmat() function
-# with k = 3 and a fair coin.
-
-# Output:
-# A data frame showing each pattern, its best reply, and the 
-# probability that the best reply wins.
-
-# Method:
-# Replace the diagonal NA values with -inf so they cannot be 
-# selected as the best reply.
-# Find the maximum value in each column.
-# Record the each pattern, its best reply, and the associated 
-# win probability in a data frame.
-
-# Create a matrix for k = 3 and a fair coin using pmat() function.
+# Create the win-probability matrix for k = 3 and a fair coin.
 M <- pmat(k = 3, p = 0.50)
 
-# Replace the diagonal NA values with -inf.
+# Replace the diagonal NA values with -Inf.
 M <- replace(M, is.na(M), -Inf)
 
 # Find the index of the best reply for each pattern.
@@ -514,22 +486,9 @@ print(best_reply_table)
 
 
 # Task 5(b)(1): Find evenly matched pattern pairs.
-
-# Idea:
-# Find pairs with approximately equal chances (between 0.49 and 0.51) 
-# of winning against each other.
-
-# Input:
-# M = The matrix of win probabilities created by pmat() function
-# with k = 3 and a fair coin.
-
-# Output:
-# A data frame showing each evenly matched pair and the win 
-# probabilities of both pattern
-
-# Method:
-# Examine each distinct pair only once.
-# Keep pairs for which both win probabilities are between 0.49 and 0.51.
+#
+# A pair is evenly matched if both patterns win with a probability
+# between 0.49 and 0.51. Each distinct pair is examined only once.
 
 # Create an empty data frame to store the results.
 evenly_matched_pairs <- data.frame(
@@ -539,7 +498,7 @@ evenly_matched_pairs <- data.frame(
   P2_Win_Probability = numeric()
 )
 
-# Examine all pairs with for loop.
+# Examine all pairs.
 for (i in seq_len(nrow(M))) {
   for (j in seq_len(ncol(M))) {
     
@@ -564,31 +523,32 @@ for (i in seq_len(nrow(M))) {
   }
 }
 
-# Reset row names and display the result
+# Reset row names and display the result.
 row.names(evenly_matched_pairs) <- NULL
 print(evenly_matched_pairs)
 
 
 # Task 5(b)(2): Find the shortest non-transitive cycle.
 
-# Idea:
-# Find the shortest cycle in which every pattern beats the next
-# pattern with at least given win probability.
-
-# Input:
-# m = A matrix of pairwise win probabilities.
-# min_probability = The minimum probability required for each win.
-
-# Output:
-# A data frame showing the patterns in each cycle, the direction 
-# of each win, and win probabilities.
-
-# Method:
-# Search cycles in increasing order of length. Use recursive search
-# to extend path without repeating patterns, and check whether the
-# final pattern beats the starting pattern to complete a cycle.
-
 find_cycle <- function(m, min_probability = 0.60) {
+  # Finds the shortest cycle P1 -> P2 -> ... -> Pm -> P1 of distinct
+  # patterns in which every pattern beats the next one.
+  #
+  # Inputs:
+  #   m: matrix of pairwise win probabilities, as returned by pmat()
+  #   min_probability: minimum win probability required for each step
+  #
+  # Output:
+  #   A data frame listing every shortest cycle found, with the
+  #   direction of each win and its probability, or a message if no
+  #   cycle exists.
+  #
+  # Method:
+  #   Search cycle lengths in increasing order, starting at 3. For each
+  #   starting pattern, extend the path recursively with unused patterns
+  #   that the last pattern beats, and check whether the final pattern
+  #   beats the starting pattern. Only patterns with a larger index than
+  #   the start are used, so each cycle is found only once.
   
   k <- nrow(m)
   
@@ -652,34 +612,19 @@ find_cycle <- function(m, min_probability = 0.60) {
     }
   }
   
-  # message dos not exist 
+  # Return a message if no cycle exists.
   return("No cycle found.")
 }
 
 # Find the shortest cycle with minimum win probability = 0.60.
 find_cycle(M, min_probability = 0.60)  
 
+
 # Task 5(c): Compare expected waiting times with duel results.
-
-# Idea:
-# Find pairs with the same expected waiting time and identify.
-# pairs with noticeably different duel probabilities.
-
-# Input:
-# M = The matrix of win probabilities created by pmat() function
-# with k = 3 and a fair coin.
-# ewait() = The function that calculates the expected waiting time. 
-
-# Output:
-# A data frame that demonstrates pairs with the same expected 
-# waiting time whose duel probability is below 0.4 or above 0.6.
-
-# Method:
-# Get the pattern labels from the row names of M.
-# Convert labels into a binary matrix.
-# Calculate the exact expected waiting time with ewait() function 
-# Compare each pairs and keep whose expected waiting times are the same.
-# Display pairs with win probability notably far from 0.5.
+#
+# Calculate the exact expected waiting time of every pattern with
+# ewait(), keep the pairs with equal waiting times, and show those
+# whose duel win probability is below 0.4 or above 0.6.
 
 # Get the pattern labels from the row names of M.
 pattern_label <- rownames(M)
@@ -692,7 +637,7 @@ pattern_label <- t(sapply(pattern_label, function(x) {
 # Define pattern names.
 pattern_names <- apply(pattern_label, 1, paste, collapse = "")
 
-# Calculate th exact expected waiting time.
+# Calculate the exact expected waiting time.
 expected_wait <- apply(pattern_label, 1, ewait)
 
 # Create an empty data frame to store pairs.
@@ -703,12 +648,12 @@ comparison_table <- data.frame(
   Win_Probability = numeric()
 )
 
-# Compare every distinct pairs.
+# Compare every distinct pair.
 for (i in seq_len(nrow(M))) {
   for (j in seq_len(ncol(M))) {
     
-    # Check each pair ony one time
-    # Keep pairs with the same expected waiting time.
+    # Check each pair only once and keep pairs with
+    # the same expected waiting time.
     if (i < j &&
         expected_wait[i] == expected_wait[j]) {
       
@@ -726,9 +671,8 @@ for (i in seq_len(nrow(M))) {
   }
 }
 
-# Display pairs whose win probabilities notable differ from 0.5 
-# (win probability is below 0.4 or above 0.6.)
-
+# Keep pairs whose win probability clearly differs from 0.5
+# (below 0.4 or above 0.6).
 comparison_table <- comparison_table[
   abs(comparison_table$Win_Probability - 0.5) > 0.1, ]
 
@@ -736,13 +680,14 @@ row.names(comparison_table) <- NULL
 
 print(comparison_table)
 
-# Task 6: Plot duel lengths and variation in win probabilities.
 
-# Idea: Investigate duel lengths and how win-probability estimates vary.
-# Input: Patterns 011 and 111, a fair coin, and 2000 duels per run.
-# Output: A graph of duel lengths and a graph of 50 win-probability estimates.
-# Method: Simulate duels, mark the median length, repeat the win-probability
-# estimate 50 times, and mark the mean estimate.
+# Task 6: Plot duel lengths and variation in win probabilities.
+#
+# First, simulate 2000 duels between 011 and 111 with a fair coin and
+# plot the distribution of duel lengths, marking the median. Second,
+# estimate the win probability of 011 (the best reply to 111) in 50
+# independent runs of 2000 duels and plot the estimates around their
+# mean.
 
 # Simulate 2000 duels between patterns 011 and 111.
 a <- c(0, 1, 1)
@@ -785,12 +730,9 @@ text(43, mean_estimate, "Mean", pos = 3)
 
 
 # Task 7: Investigate the effect of coin bias.
-
-# Idea: Check how changing the coin bias affects the best replies.
-# Input: Patterns of length 3, with p = 0.25 and p = 0.7.
-# Output: A best-reply table for each coin bias.
-# Method: Calculate the win-probability matrix, find the best reply
-# to each pattern, and compare the results for both biases.
+#
+# Repeat the best-reply analysis of Task 5(a) for p = 0.25 and
+# p = 0.7 and compare the results with the fair coin.
 
 # Analyse the best replies for p = 0.25.
 M <- pmat(k = 3, p = 0.25, nreps = 2000)
