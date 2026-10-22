@@ -80,7 +80,7 @@ firsthit <- function(x, a) {
   return(start + k - 1)
 }
 
-# Task 1: Test firsthit() on a stream that can be checked by hand.
+# Test firsthit() function.
 x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
 
 firsthit(x, c(1, 0, 1))   # Expected: 6
@@ -143,11 +143,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
       
     } else {
       # Retain the last k - 1 tosses from each active sequence.
-      keep <- W[
-        ,
-        B - (k - 1) + seq_len(k - 1),
-        drop = FALSE
-      ]
+      keep <- W[,B - (k - 1) + seq_len(k - 1),drop = FALSE]
       
       # Generate new tosses for the unfinished duels.
       W_new <- matrix(
@@ -793,7 +789,7 @@ print(best_reply_table)
 # Patterns 001 and 100 both have an expected waiting time of
 # 8 tosses, but their head-to-head win probability is not 0.5.
 
-#  Conclusion:
+# Conclusion:
 # Expected waiting times alone cannot predict who wins a duel.
 # Both patterns are checked using the same sequence of coin tosses,
 # and their patterns can overlap in that sequence.
