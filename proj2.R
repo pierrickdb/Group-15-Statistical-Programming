@@ -274,13 +274,15 @@ pwin <- function(a, b, p = 0.5, nreps = 10000) {
 ewait <- function(a, p = 0.5) {
   
   # Check that the pattern is a non-empty binary vector.
-  if (length(a) == 0 || any(a != 0 & a != 1) || anyNA(a)) {
+  if (!is.numeric(a) || length(a) == 0 ||  
+      anyNA(a) || any(!a %in% c(0, 1))) {
     stop("The pattern must be a non-empty binary vector.")  
   }
   
   # Check that p is a valid probability between 0 and 1.
-  if (!is.numeric(p) || length(p) != 1 || 
-      p <= 0 || p >= 1 || is.na(p)) {
+  if (!is.numeric(p) || length(p) != 1 ||
+      is.na(p) || !is.finite(p) ||
+      p <= 0 || p >= 1) {
     stop("p must be a numeric value between 0 and 1.")  
   }
   
@@ -720,22 +722,17 @@ text(43, mean(win_estimates), "Mean", pos = 3)
 # Calculate the win-probability matrix and find the best reply
 # to each pattern. Repeat for both coin biases and compare the results.
 
-# Create the win-probability matrix for p = 0.25.
+# Analyse the best replies for p = 0.25.
 M <- pmat(k = 3, p = 0.25, nreps = 2000)
-
-# Exclude patterns from being their own best reply.
 M <- replace(M, is.na(M), -Inf)
 
-# Find each best reply and save its win probability.
 best_reply <- apply(M, 2, which.max)
-
 win_probability <- numeric(ncol(M))
 
 for (j in seq_len(ncol(M))) {
   win_probability[j] <- M[best_reply[j], j]
 }
 
-# Create and print the best-reply table.
 best_reply_table <- data.frame(
   Pattern = rownames(M),
   Best_reply = rownames(M)[best_reply],
@@ -745,13 +742,10 @@ best_reply_table <- data.frame(
 
 print(best_reply_table)
 
-# Repeat the best-reply analysis for p = 0.7.
+# Repeat the analysis for p = 0.7.
 M <- pmat(k = 3, p = 0.7, nreps = 2000)
-
-# Exclude patterns from being their own best reply.
 M <- replace(M, is.na(M), -Inf)
 
-# Find each best reply and save its win probability.
 best_reply <- apply(M, 2, which.max)
 win_probability <- numeric(ncol(M))
 
@@ -759,7 +753,6 @@ for (j in seq_len(ncol(M))) {
   win_probability[j] <- M[best_reply[j], j]
 }
 
-# Create and print the best-reply table.
 best_reply_table <- data.frame(
   Pattern = rownames(M),
   Best_reply = rownames(M)[best_reply],
@@ -768,27 +761,20 @@ best_reply_table <- data.frame(
 )
 
 print(best_reply_table)
-
-# Overall analysis
-
-# Graphs:
-# The CDF shows the distribution of duel lengths, with the median
-# marked. The second graph shows variation in win-probability
-# estimates across 50 runs, with the mean marked.
 
 # Best replies and cycles:
-# The best replies change with coin bias. The cycle for p = 0.25 is
-# 100 -> 000 -> 001 -> 010 -> 100, while for p = 0.7 it is
-# 110 -> 101 -> 011 -> 111 -> 110.
+# For p = 0.25, one estimated cycle is:
+# 100 -> 000 -> 001 -> 010 -> 100
+#
+# For p = 0.7, one estimated cycle is:
+# 101 -> 011 -> 111 -> 110 -> 101
+#
+# Changing the coin bias changes the best replies
+# and the patterns involved in the observed cycles.
 
-# Waiting times:
-# Patterns 001 and 100 both have an expected waiting time of
-# 8 tosses, but their head-to-head win probability is not 0.5.
 
-# Conclusion:
-# Expected waiting times alone cannot predict who wins a duel.
-# Both patterns are checked using the same sequence of coin tosses,
-# and their patterns can overlap in that sequence.
-# This means their waiting times are linked, not independent.
-# Therefore, comparing their expected waiting times alone can
-# give a misleading idea of which pattern will win.
+# Overall analysis:
+# Ranking patterns by their individual waiting times
+# does not necessarily predict who wins a duel.
+# Both patterns use the same sequence of coin tosses,
+# so their appearances are not independent.
