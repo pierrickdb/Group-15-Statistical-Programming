@@ -280,13 +280,15 @@ pwin <- function(a, b, p = 0.5, nreps = 10000) {
 ewait <- function(a, p = 0.5) {
   
   # Check that the pattern is a non-empty binary vector.
-  if (length(a) == 0 || any(a != 0 & a != 1) || anyNA(a)) {
+  if (!is.numeric(a) || length(a) == 0 ||  
+      anyNA(a) || any(!a %in% c(0, 1))) {
     stop("The pattern must be a non-empty binary vector.")  
   }
   
   # Check that p is a valid probability between 0 and 1.
-  if (!is.numeric(p) || length(p) != 1 || 
-      p <= 0 || p >= 1 || is.na(p)) {
+  if (!is.numeric(p) || length(p) != 1 ||
+      is.na(p) || !is.finite(a) ||
+      p <= 0 || p >= 1 || ) {
     stop("p must be a numeric value between 0 and 1.")  
   }
   
@@ -335,7 +337,12 @@ ewait <- function(a, p = 0.5) {
 # the pwin() function and store the result in matrix M.
 
 pmat <- function(k, p = 0.5, nreps = 10000) {
-  
+
+  # Input check for k.
+  if (!is.numeric(k) || length(k) != 1 ||
+      is.na(k) || !is.finite(k)) {
+    stop("k must be a positive number.")
+
   # Generate all possible binary patterns of length k.
   pattern <- expand.grid(rep(list(0:1), k))
   
@@ -400,7 +407,6 @@ pmat <- function(k, p = 0.5, nreps = 10000) {
 
 # Create a matrix for k = 3 and a fair coin using pmat() function.
 M <- pmat(k = 3, p = 0.50)
-M_fair <- M 
 
 # Replace the diagonal NA values with -inf.
 M <- replace(M, is.na(M), -Inf)
@@ -595,9 +601,6 @@ find_cycle(M, min_probability = 0.60)
 # Display pairs with win probability notably far from 0.5.
 
 # Get the pattern labels from the row names of M.
-M <- pmat(k = 3, p = 0.5)
-M <- M_fair
-
 pattern_label <- rownames(M)
 
 # Convert labels into a binary matrix.
