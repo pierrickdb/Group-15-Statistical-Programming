@@ -137,7 +137,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
     # Generate the initial block of tosses.
     if (time == 0) {
       W <- matrix(
-        rbinom(nreps * B, size <- 1, prob <- p),
+        rbinom(nreps * B, size = 1, prob = p),
         nrow = nreps
       )
       
