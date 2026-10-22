@@ -185,7 +185,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
     time <- time + B - (k - 1)
   }
   
-  return(list(winner <- winner, tosses = tosses))
+  return(list(winner = winner, tosses = tosses))
 }
 
 
@@ -369,23 +369,6 @@ pmat <- function(k, p = 0.5, nreps = 10000) {
 
 
 # Task 1: Test firsthit() on a stream that can be checked by hand.
-
-# Idea:
-# Confirm that firsthit() returns the correct ending position
-# for patterns whose first occurrence is known in advance.
-
-# Input:
-# x = The toss stream H T T H T H H H T, coded as 1 0 0 1 0 1 1 1 0.
-# Patterns 101 (HTH), 011 (THH) and 000 (TTT).
-
-# Output:
-# The position at which each pattern is first completed.
-
-# Method:
-# HTH first occupies positions 4-6, so the expected result is 6.
-# THH first occupies positions 5-7, so the expected result is 7.
-# TTT does not appear in the stream, so the expected result is NA.
-
 x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
 
 firsthit(x, c(1, 0, 1))   # Expected: 6
@@ -442,7 +425,7 @@ best_reply_table <- data.frame(
 print(best_reply_table)
 
 
-# Task 5(b)(I): Find evenly matched pattern pairs.
+# Task 5(b)(1): Find evenly matched pattern pairs.
 
 # Idea:
 # Find pairs with approximately equal chances (between 0.49 and 0.51) 
@@ -498,7 +481,7 @@ row.names(evenly_matched_pairs) <- NULL
 print(evenly_matched_pairs)
 
 
-# Task 5(b)(II): Find the shortest non-transitive cycle.
+# Task 5(b)(2): Find the shortest non-transitive cycle.
 
 # Idea:
 # Find the shortest cycle in which every pattern beats the next
