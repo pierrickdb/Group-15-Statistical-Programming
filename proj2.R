@@ -577,7 +577,7 @@ find_cycle(M, min_probability = 0.60)
 
 # Input:
 # M = The matrix of win probabilities created by pmat() function
-#      with k = 3 and a fair coin.
+# with k = 3 and a fair coin.
 # ewait() = The function that calculates the expected waiting time. 
 
 # Output:
