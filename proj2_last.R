@@ -3,10 +3,10 @@
 #
 # Authors:
 # Pierrick de Boer S3034691
-# Fagan Ganbarli s3015664
-# Pierrick de Boer S3034691
+# Fagan Ganbarli S3015664
 # Raneem Alluhaydan S3044929
-#
+
+
 # Contributions:
 # Pierrick de Boer ( %): Task 1-3
 # Fagan Ganbarli ( %): Task 4-5
@@ -18,14 +18,13 @@
 # the probability that player A wins through repeated simulations.
 #
 # Main functions:
-# 1. firsthit(): Find the first occurrence of a pattern. (Pierrick)
-# 2. sim_duels(): Simulate multiple duels in batches.(Pierrick)
-# 3. duel(): Simulate a single duel. (Pierrick)
-# 4. pwin(): Estimate player A's winning probability.(Pierrick)
-# 5. 
-# 6. 
-# 7.
-# 8.
+# 1. firsthit(): Find the first occurrence of a pattern.
+# 2. sim_duels(): Simulate multiple duels.
+# 3. duel(): Simulate one duel.
+# 4. pwin(): Estimate the probability that a pattern wins.
+# 5. ewait(): Calculate the expected waiting time of a pattern.
+# 6. pmat(): Calculate win probabilities between patterns.
+# 7. find_cycle(): Find a non-transitive cycle of patterns.
 # =============================================================================
 
 # Task 1: 
@@ -401,6 +400,7 @@ pmat <- function(k, p = 0.5, nreps = 10000) {
 
 # Create a matrix for k = 3 and a fair coin using pmat() function.
 M <- pmat(k = 3, p = 0.50)
+M_fair <- M 
 
 # Replace the diagonal NA values with -inf.
 M <- replace(M, is.na(M), -Inf)
@@ -420,7 +420,7 @@ for (j in seq_len(ncol(M))) {
 best_reply_table <- data.frame(
   Pattern = rownames(M),
   Best_reply = rownames(M)[best_reply],
-  Probablity = win_probability
+  Probability = win_probability
 )
 
 print(best_reply_table)
@@ -482,7 +482,7 @@ row.names(evenly_matched_pairs) <- NULL
 print(evenly_matched_pairs)
 
 
-# Task 5(b)(II): Find the shortest nontransitive cycle.
+# Task 5(b)(II): Find the shortest non-transitive cycle.
 
 # Idea:
 # 
@@ -546,9 +546,10 @@ find_cycle <- function(m, min_probability = 0.60) {
     }
   }
   
-  return("No Respound")
+  return("No Respond")
 }
-  
+
+find_cycle(M, min_probability = 0.60)  
 
 # Task 5(c): Compare expected waiting times with duel results.
 
@@ -573,6 +574,9 @@ find_cycle <- function(m, min_probability = 0.60) {
 # Display pairs with win probability notably far from 0.5.
 
 # Get the pattern labels from the row names of M.
+M <- pmat(k = 3, p = 0.5)
+M <- M_fair
+
 pattern_label <- rownames(M)
 
 # Convert labels into a binary matrix.
@@ -607,8 +611,8 @@ for (i in seq_len(nrow(M))) {
       # and the probability that Pattern1 beats Pattern2.
       comparison_table <- rbind(
         comparison_table, data.frame(
-        Pattern1 <- pattern_names[i],
-        Pattern2 <- pattern_names[j],
+        Pattern1 = pattern_names[i],
+        Pattern2 = pattern_names[j],
         Expected_Wait = expected_wait[i],
         Win_Probability = M[i, j]
         )
@@ -619,8 +623,163 @@ for (i in seq_len(nrow(M))) {
 
 # Display pairs whose win probabilities notable differ from 0.5 
 # (win probability is below 0.4 or above 0.6.)
-print(comparison_table[
-  abs(comparison_table$Win_Probability - 0.5) > 0.1, ])
-  
-  
-  
+
+comparison_table <- comparison_table[
+  abs(comparison_table$Win_Probability - 0.5) > 0.1, ]
+
+row.names(comparison_table) <- NULL
+
+print(comparison_table)
+
+#Task 6: Plot duel lengths and variation in win probabilities.
+
+# Idea:
+# Describe the two things you are investigating:
+# how long duels take and how estimates vary between runs.
+
+# Input:
+# Patterns 011 and 111, a fair coin, 2000 duels,
+# and 50 repeated runs for the win-probability estimates.
+
+# Output:
+# Two graphs: a CDF of duel lengths and a plot of
+# win-probability estimates across 50 runs.
+
+# Method:
+# Simulate duels, plot their lengths and mark the median.
+# Repeat the win-probability estimation 50 times, plot
+# the results and mark their mean.
+
+# Choose the two patterns and simulate 2000 duels.
+a <- c(0,1,1)
+b <- c(1,1,1)
+results <- sim_duels(a,b, p = 0.5, nreps = 2000)
+
+# Save the duel lengths and plot their distribution as a staircase.
+
+tosses <- results$tosses
+
+plot(ecdf(tosses), 
+     verticals = TRUE,
+     do.points = FALSE,
+     main = "Distribution of duel lengths",
+     xlab = "Number of tosses", 
+     ylab = "Estimated probability")
+
+# Calculate the median duel length and mark it with a vertical line.
+med <- median(tosses)
+lines(c(med, med), c(0,1))
+text(med + 2, 0.95, "Median")
+
+# Estimate the win probability over 50 runs, using 2000 duels per run.
+win_estimates <- numeric(50)
+
+for (i in 1:50) { 
+  win_estimates[i] <- pwin(
+    a = c(0,1,1),
+    b = c(1,1,1),
+    p = 0.5,
+    nreps = 2000
+  )
+}
+
+#Calculate the mean of the 50 estimates.
+
+mean(win_estimates)
+
+# Plot the estimates and mark their mean with a dashed line.
+plot(win_estimates,
+     xlab = "Run",
+     ylab = "Win probability",
+     main = "Win probability across 50 runs")
+
+abline(h = mean(win_estimates), lty = 2)
+text(43, mean(win_estimates), "Mean", pos = 3)
+
+# Task 7: Investigate the effect of coin bias.
+
+# Idea:
+# Check how changing the coin bias affects the best replies.
+
+# Input:
+# Patterns of length 3, with p = 0.25 and p = 0.7.
+
+# Output:
+# A best-reply table for each coin bias.
+
+# Method:
+# Calculate the win-probability matrix and find the best reply
+# to each pattern. Repeat for both coin biases and compare the results.
+
+# Create the win-probability matrix for p = 0.25.
+M <- pmat(k = 3, p = 0.25, nreps = 2000)
+
+# Exclude patterns from being their own best reply.
+M <- replace(M, is.na(M), -Inf)
+
+# Find each best reply and save its win probability.
+best_reply <- apply(M, 2, which.max)
+
+win_probability <- numeric(ncol(M))
+
+for (j in seq_len(ncol(M))) {
+  win_probability[j] <- M[best_reply[j], j]
+}
+
+# Create and print the best-reply table.
+best_reply_table <- data.frame(
+  Pattern = rownames(M),
+  Best_reply = rownames(M)[best_reply],
+  Probability = win_probability,
+  row.names = NULL
+)
+
+print(best_reply_table)
+
+# Repeat the best-reply analysis for p = 0.7.
+M <- pmat(k = 3, p = 0.7, nreps = 2000)
+
+# Exclude patterns from being their own best reply.
+M <- replace(M, is.na(M), -Inf)
+
+# Find each best reply and save its win probability.
+best_reply <- apply(M, 2, which.max)
+win_probability <- numeric(ncol(M))
+
+for (j in seq_len(ncol(M))) {
+  win_probability[j] <- M[best_reply[j], j]
+}
+
+# Create and print the best-reply table.
+best_reply_table <- data.frame(
+  Pattern = rownames(M),
+  Best_reply = rownames(M)[best_reply],
+  Probability = win_probability,
+  row.names = NULL
+)
+
+print(best_reply_table)
+
+# Overall analysis
+
+# Graphs:
+# The CDF shows the distribution of duel lengths, with the median
+# marked. The second graph shows variation in win-probability
+# estimates across 50 runs, with the mean marked.
+
+# Best replies and cycles:
+# The best replies change with coin bias. The cycle for p = 0.25 is
+# 100 -> 000 -> 001 -> 010 -> 100, while for p = 0.7 it is
+# 110 -> 101 -> 011 -> 111 -> 110.
+
+# Waiting times:
+# Patterns 001 and 100 both have an expected waiting time of
+# 8 tosses, but their head-to-head win probability is not 0.5.
+
+#  Conclusion:
+# Expected waiting times alone cannot predict who wins a duel.
+# Both patterns are checked using the same sequence of coin tosses,
+# and their patterns can overlap in that sequence.
+# This means their waiting times are linked, not independent.
+# Therefore, comparing their expected waiting times alone can
+# give a misleading idea of which pattern will win.
