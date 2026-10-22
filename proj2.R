@@ -185,7 +185,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
     time <- time + B - (k - 1)
   }
   
-  return(list(winner = winner, tosses = tosses))
+  return(list(winner <- winner, tosses = tosses))
 }
 
 
@@ -198,7 +198,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
 # Input:
 # a = Binary pattern of player A.
 # b = Binary pattern of player B.
-# p = The probability of a head (0 < p < 1).
+# p = The probability of a head
 
 # Output:
 # A vector c(winner, tosses), where winner is 1 if A wins and 0
@@ -210,7 +210,6 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
 
 duel <- function(a, b, p = 0.5) {
   
-  # Simulate one duel.
   result <- sim_duels(a, b, p, nreps = 1)
   
   return(c(result[[1]], result[[2]]))
