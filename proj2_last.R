@@ -288,7 +288,7 @@ ewait <- function(a, p = 0.5) {
   # Check that p is a valid probability between 0 and 1.
   if (!is.numeric(p) || length(p) != 1 ||
       is.na(p) || !is.finite(a) ||
-      p <= 0 || p >= 1 || ) {
+      p <= 0 || p >= 1) {
     stop("p must be a numeric value between 0 and 1.")  
   }
   
