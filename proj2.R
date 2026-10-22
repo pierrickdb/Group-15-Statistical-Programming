@@ -643,84 +643,61 @@ row.names(comparison_table) <- NULL
 
 print(comparison_table)
 
-#Task 6: Plot duel lengths and variation in win probabilities.
+# Task 6: Plot duel lengths and variation in win probabilities.
 
-# Idea:
-# Describe the two things you are investigating:
-# how long duels take and how estimates vary between runs.
+# Idea: Investigate duel lengths and how win-probability estimates vary.
+# Input: Patterns 011 and 111, a fair coin, and 2000 duels per run.
+# Output: A graph of duel lengths and a graph of 50 win-probability estimates.
+# Method: Simulate duels, mark the median length, repeat the win-probability
+# estimate 50 times, and mark the mean estimate.
 
-# Input:
-# Patterns 011 and 111, a fair coin, 2000 duels,
-# and 50 repeated runs for the win-probability estimates.
+# Simulate 2000 duels between patterns 011 and 111.
+a <- c(0, 1, 1)
+b <- c(1, 1, 1)
+results <- sim_duels(a, b, p = 0.5, nreps = 2000)
 
-# Output:
-# Two graphs: a CDF of duel lengths and a plot of
-# win-probability estimates across 50 runs.
-
-# Method:
-# Simulate duels, plot their lengths and mark the median.
-# Repeat the win-probability estimation 50 times, plot
-# the results and mark their mean.
-
-# Choose the two patterns and simulate 2000 duels.
-a <- c(0,1,1)
-b <- c(1,1,1)
-results <- sim_duels(a,b, p = 0.5, nreps = 2000)
-
-# Save the duel lengths and plot their distribution as a staircase.
-
+# Plot the distribution of duel lengths and mark the median.
 tosses <- results$tosses
-
-plot(ecdf(tosses), 
-     verticals = TRUE,
-     do.points = FALSE,
+plot(ecdf(tosses), verticals = TRUE, do.points = FALSE,
      main = "Distribution of duel lengths",
-     xlab = "Number of tosses", 
+     xlab = "Number of tosses",
      ylab = "Estimated probability")
 
-# Calculate the median duel length and mark it with a vertical line.
 med <- median(tosses)
-lines(c(med, med), c(0,1))
+lines(c(med, med), c(0, 1))
 text(med + 2, 0.95, "Median")
 
-# Estimate the win probability over 50 runs, using 2000 duels per run.
+# Estimate the win probability in 50 independent runs.
 win_estimates <- numeric(50)
 
-for (i in 1:50) { 
+for (i in 1:50) {
   win_estimates[i] <- pwin(
-    a = c(0,1,1),
-    b = c(1,1,1),
+    a = c(0, 1, 1),
+    b = c(1, 1, 1),
     p = 0.5,
     nreps = 2000
   )
 }
 
-#Calculate the mean of the 50 estimates.
-mean(win_estimates)
+# Calculate the mean estimate and plot the results.
+mean_estimate <- mean(win_estimates)
 
-# Plot the estimates and mark their mean with a dashed line.
 plot(win_estimates,
      xlab = "Run",
      ylab = "Win probability",
      main = "Win probability across 50 runs")
 
-abline(h = mean(win_estimates), lty = 2)
-text(43, mean(win_estimates), "Mean", pos = 3)
+abline(h = mean_estimate, lty = 2)
+text(43, mean_estimate, "Mean", pos = 3)
+
 
 # Task 7: Investigate the effect of coin bias.
 
-# Idea:
-# Check how changing the coin bias affects the best replies.
-
-# Input:
-# Patterns of length 3, with p = 0.25 and p = 0.7.
-
-# Output:
-# A best-reply table for each coin bias.
-
-# Method:
-# Calculate the win-probability matrix and find the best reply
-# to each pattern. Repeat for both coin biases and compare the results.
+# Idea: Check how changing the coin bias affects the best replies.
+# Input: Patterns of length 3, with p = 0.25 and p = 0.7.
+# Output: A best-reply table for each coin bias.
+# Method: Calculate the win-probability matrix, find the best reply
+# to each pattern, and compare the results for both biases.
 
 # Analyse the best replies for p = 0.25.
 M <- pmat(k = 3, p = 0.25, nreps = 2000)
@@ -734,13 +711,14 @@ for (j in seq_len(ncol(M))) {
 }
 
 best_reply_table <- data.frame(
-  Pattern = rownames(M),
+  Pattern = colnames(M),
   Best_reply = rownames(M)[best_reply],
   Probability = win_probability,
   row.names = NULL
 )
 
 print(best_reply_table)
+
 
 # Repeat the analysis for p = 0.7.
 M <- pmat(k = 3, p = 0.7, nreps = 2000)
@@ -754,7 +732,7 @@ for (j in seq_len(ncol(M))) {
 }
 
 best_reply_table <- data.frame(
-  Pattern = rownames(M),
+  Pattern = colnames(M),
   Best_reply = rownames(M)[best_reply],
   Probability = win_probability,
   row.names = NULL
@@ -762,19 +740,21 @@ best_reply_table <- data.frame(
 
 print(best_reply_table)
 
+
 # Best replies and cycles:
-# For p = 0.25, one estimated cycle is:
+# For p = 0.25, one observed cycle is:
 # 100 -> 000 -> 001 -> 010 -> 100
 #
-# For p = 0.7, one estimated cycle is:
+# For p = 0.7, one observed cycle is:
 # 101 -> 011 -> 111 -> 110 -> 101
 #
-# Changing the coin bias changes the best replies
-# and the patterns involved in the observed cycles.
-
+# Changing the coin bias changes the best replies and the patterns
+# involved in the observed cycles.
 
 # Overall analysis:
-# Ranking patterns by their individual waiting times
-# does not necessarily predict who wins a duel.
-# Both patterns use the same sequence of coin tosses,
+# Ranking patterns by their individual waiting times does not
+# necessarily predict who wins a duel.
+# Both patterns are observed in the same sequence of coin tosses,
 # so their appearances are not independent.
+# Therefore, isolated waiting-time summaries can be misleading
+# when predicting duel outcomes.
