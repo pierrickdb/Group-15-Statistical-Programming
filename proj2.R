@@ -34,9 +34,9 @@
 # once and return the position where the first matching window ends.
 
 # Input:
-# x = A 0/1 toss stream, either a vector or a matrix with one
+# x = A toss stream, either a vector or a matrix with one
 #     stream per row.
-# a = A 0/1 pattern of length k.
+# a = A pattern of length k.
 
 # Output:
 # The toss at which the pattern is first completed in each row,
@@ -90,7 +90,7 @@ firsthit <- function(x, a) {
 # Input:
 # a = Binary pattern of player A.
 # b = Binary pattern of player B, distinct from a and of equal length.
-# p = The probability of a head (0 < p < 1).
+# p = The probability of a head
 # nreps = The number of independent duels to simulate.
 
 # Output:
