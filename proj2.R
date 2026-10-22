@@ -616,8 +616,7 @@ find_cycle <- function(m, min_probability = 0.60) {
 }
 
 # Find the shortest cycle with minimum win probability = 0.60.
-find_cycle(M, min_probability = 0.60)  
-
+find_cycle(M, min_probability = 0.60)
 
 # Task 5(c): Compare expected waiting times with duel results.
 #
@@ -654,7 +653,7 @@ for (i in seq_len(nrow(M))) {
     # Check each pair only once and keep pairs with
     # the same expected waiting time.
     if (i < j &&
-        expected_wait[i] == expected_wait[j]) {
+        abs(expected_wait[i] - expected_wait[j]) < 0.0001) {
       
       # Store the pair, their equal expected waiting time,
       # and the probability that Pattern1 beats Pattern2.
@@ -775,15 +774,20 @@ best_reply_table <- data.frame(
 print(best_reply_table)
 
 
-# Best replies and cycles:
-# For p = 0.25, one observed cycle is:
-# 100 -> 000 -> 001 -> 010 -> 100
-#
-# For p = 0.7, one observed cycle is:
-# 101 -> 011 -> 111 -> 110 -> 101
-#
-# Changing the coin bias changes the best replies and the patterns
-# involved in the observed cycles.
+# Check for non-transitive cycles for each coin bias.
+find_cycle(pmat(k = 3, p = 0.25, nreps = 2000))
+find_cycle(pmat(k = 3, p = 0.7, nreps = 2000))
+
+# For p = 0.25, no non-transitive cycle was found.
+# For p = 0.7, a non-transitive cycle was found:
+# 011 -> 111 -> 110 -> 101 -> 011.
+# Each pattern beats the next with probability above 0.5.
+# Changing the coin bias changes the best replies and can
+# affect whether a non-transitive cycle is found.
+
+# Compared with the fair coin (p = 0.5), the best replies
+# differ when the coin is biased.
+
 
 # Overall analysis:
 # Ranking patterns by their individual waiting times does not
