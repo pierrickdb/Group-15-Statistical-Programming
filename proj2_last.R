@@ -2,15 +2,15 @@
 # Coin-Toss Pattern Duel
 #
 # Authors:
-# Pierrick de Boer S3034691
-# Fagan Ganbarli S3015664
-# Raneem Alluhaydan S3044929
+# Pierrick de Boer: S3034691
+# Fagan Ganbarli: S3015664
+# Raneem Alluhaydan: S3044929
 
 
 # Contributions:
-# Pierrick de Boer ( %): Task 1-3
-# Fagan Ganbarli ( %): Task 4-5
-# Raneem Alluhaydan ( %): Task 6-7
+# Pierrick de Boer ( 33%): Task 1-3
+# Fagan Ganbarli ( 33%): Task 4-5
+# Raneem Alluhaydan ( 33%): Task 6-7
 #
 # Overview:
 # This script simulates duels between two binary patterns in a sequence
@@ -485,52 +485,71 @@ print(evenly_matched_pairs)
 # Task 5(b)(II): Find the shortest non-transitive cycle.
 
 # Idea:
-# 
+# Find the shortest cycle in which every pattern beats the next
+# pattern with at least given win probability.
 
 # Input:
-# 
+# m = A matrix of pairwise win probabilities.
+# min_probability = The minimum probability required for each win.
 
 # Output:
-# 
+# A data frame showing the patterns in each cycle, the direction 
+# of each win, and win probabilities.
 
 # Method:
-# 
+# Search cycles in increasing order of length. Use recursive search
+# to extend path without repeating patterns, and check whether the
+# final pattern beats the starting pattern to complete a cycle.
 
 find_cycle <- function(m, min_probability = 0.60) {
   
   k <- nrow(m)
-  
+
+  # Check cycle from the shortest possible length (3).
   for (i in 3:k) {
     
     cycles <- list()
-    
+
+    # Try each pattern as the starting point.
     for(start in seq_len(k)) {
+      
       search <- function(path) {
-        last <- path[length(path)]
         
+        last <- path[length(path)]
+
+        # Check whether the path can be closed into a cycle.
         if (length(path) == i) {
+          
           if (!is.na(m[last, start]) &&
               m[last, start] >= min_probability) {
+            
             cycles[[length(cycles) + 1]] <<- path
           }
+          
           return(invisible(NULL))
         }
+
+        # Only consider unused patterns to avoid duplicate cycles.
         sequence <- setdiff(seq_len(k), path)
         sequence <- sequence[sequence > start]
         
         for (next_item in sequence) {
+          
           if (!is.na(m[last, next_item]) && 
               m[last, next_item] >= min_probability) {
+            
             search(c(path, next_item))
           }
         }
       }
       search(start)
     }
-    
+
+    # Return the cycle when shortest length has been found.
     if (length(cycles) > 0) {
       
       result <- do.call(rbind, lapply(seq_along(cycles), function(x) {
+        
         path <- cycles[[x]]
         next_path <- c(path[-1], path[1])
         
@@ -545,10 +564,12 @@ find_cycle <- function(m, min_probability = 0.60) {
       return(result)
     }
   }
-  
-  return("No Respond")
+
+  # Return a message if no cycle exists.
+  return("No cycle found.")
 }
 
+# Find the shortest cycle with minimum win probability = 0.60.
 find_cycle(M, min_probability = 0.60)  
 
 # Task 5(c): Compare expected waiting times with duel results.
