@@ -274,13 +274,15 @@ pwin <- function(a, b, p = 0.5, nreps = 10000) {
 ewait <- function(a, p = 0.5) {
   
   # Check that the pattern is a non-empty binary vector.
-  if (length(a) == 0 || any(a != 0 & a != 1) || anyNA(a)) {
+  if (!is.numeric(a) || length(a) == 0 ||  
+      anyNA(a) || any(!a %in% c(0, 1))) {
     stop("The pattern must be a non-empty binary vector.")  
   }
   
   # Check that p is a valid probability between 0 and 1.
-  if (!is.numeric(p) || length(p) != 1 || 
-      p <= 0 || p >= 1 || is.na(p)) {
+  if (!is.numeric(p) || length(p) != 1 ||
+      is.na(p) || !is.finite(p) ||
+      p <= 0 || p >= 1) {
     stop("p must be a numeric value between 0 and 1.")  
   }
   
