@@ -393,7 +393,6 @@ pmat <- function(k, p = 0.5, nreps = 10000) {
 
 # Create a matrix for k = 3 and a fair coin using pmat() function.
 M <- pmat(k = 3, p = 0.50)
-M_fair <- M 
 
 # Replace the diagonal NA values with -inf.
 M <- replace(M, is.na(M), -Inf)
@@ -588,9 +587,6 @@ find_cycle(M, min_probability = 0.60)
 # Display pairs with win probability notably far from 0.5.
 
 # Get the pattern labels from the row names of M.
-M <- pmat(k = 3, p = 0.5)
-M <- M_fair
-
 pattern_label <- rownames(M)
 
 # Convert labels into a binary matrix.
