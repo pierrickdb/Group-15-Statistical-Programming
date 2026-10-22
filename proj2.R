@@ -80,6 +80,13 @@ firsthit <- function(x, a) {
   return(start + k - 1)
 }
 
+# Task 1: Test firsthit() on a stream that can be checked by hand.
+x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
+
+firsthit(x, c(1, 0, 1))   # Expected: 6
+firsthit(x, c(0, 1, 1))   # Expected: 7
+firsthit(x, c(0, 0, 0))   # Expected: NA
+
 
 # Task 2: Simulate duels between two patterns.
 
@@ -365,15 +372,6 @@ pmat <- function(k, p = 0.5, nreps = 10000) {
   return(M)
 }
 
-
-
-
-# Task 1: Test firsthit() on a stream that can be checked by hand.
-x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
-
-firsthit(x, c(1, 0, 1))   # Expected: 6
-firsthit(x, c(0, 1, 1))   # Expected: 7
-firsthit(x, c(0, 0, 0))   # Expected: NA
 
 
 # Task 5(a): Find the best reply and its win probability for each pattern.
