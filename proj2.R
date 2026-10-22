@@ -654,7 +654,7 @@ for (i in seq_len(nrow(M))) {
     # Check each pair only once and keep pairs with
     # the same expected waiting time.
     if (i < j &&
-        expected_wait[i] == expected_wait[j]) {
+        abs(expected_wait[i] - expected_wait[j]) < 0.0001) {
       
       # Store the pair, their equal expected waiting time,
       # and the probability that Pattern1 beats Pattern2.
