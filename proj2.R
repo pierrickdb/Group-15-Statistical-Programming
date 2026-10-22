@@ -702,7 +702,6 @@ for (i in 1:50) {
 }
 
 #Calculate the mean of the 50 estimates.
-
 mean(win_estimates)
 
 # Plot the estimates and mark their mean with a dashed line.
