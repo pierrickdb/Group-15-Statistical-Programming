@@ -236,7 +236,7 @@ duel <- function(a, b, p = 0.5) {
 # Since a win for A is stored as 1 and a loss as 0, the mean of
 # the winner vector estimates the win probability.
 
-pwin <- function(a, b, p = 0.5, nreps = 10000) {
+pwin <- function(a, b, p <- 0.5, nreps <- 10000) {
   
   # Simulate the duels.
   result <- sim_duels(a, b, p, nreps)
