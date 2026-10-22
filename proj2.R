@@ -78,8 +78,7 @@ firsthit <- function(x, a) {
   return(start + k - 1)
 }
 
-# Test firsthit() on the stream H T T H T H H H T, which can be
-# checked by hand: HTH ends at toss 6, THH at toss 7, TTT never occurs.
+# Test firsthit() on the stream below
 x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
 
 firsthit(x, c(1, 0, 1))   # Expected: 6
