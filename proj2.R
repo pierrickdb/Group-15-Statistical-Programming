@@ -251,7 +251,7 @@ pwin <- function(a, b, p = 0.5, nreps = 10000) {
 }
 
 
-# Task 4: Calculating the exact expected waiting time for a pattern.
+# Task 4.a: Calculating the exact expected waiting time for a pattern.
 
 # Idea:
 # The expected waiting time depends on the lengths for which
@@ -274,15 +274,13 @@ pwin <- function(a, b, p = 0.5, nreps = 10000) {
 ewait <- function(a, p = 0.5) {
   
   # Check that the pattern is a non-empty binary vector.
-  if (!is.numeric(a) || length(a) == 0 ||  
-      anyNA(a) || any(!a %in% c(0, 1))) {
+  if (length(a) == 0 || any(a != 0 & a != 1) || anyNA(a)) {
     stop("The pattern must be a non-empty binary vector.")  
   }
   
   # Check that p is a valid probability between 0 and 1.
-  if (!is.numeric(p) || length(p) != 1 ||
-      is.na(p) || !is.finite(p) ||
-      p <= 0 || p >= 1) {
+  if (!is.numeric(p) || length(p) != 1 || 
+      p <= 0 || p >= 1 || is.na(p)) {
     stop("p must be a numeric value between 0 and 1.")  
   }
   
@@ -307,6 +305,101 @@ ewait <- function(a, p = 0.5) {
   }
   return(expected_wait)
 }
+
+# Check the expected waiting times for a fair coin.
+patterns <- list(
+  HH = c(1, 1),
+  TT = c(0, 0),
+  HT = c(1, 0),
+  TH = c(0, 1)
+)
+
+exact <- sapply(patterns, ewait)
+print(exact)
+
+# Task 4.b: Calculate the expected waiting time using Monte Carlo simulation.
+
+# Idea:
+# The function simulates coin tosses until the given pattern appears.
+# It repeats this process nreps times and returns the average.
+
+# Input:
+# a = A binary pattern.
+# p = Probability of getting a head.
+# nreps = Number of simulations.
+
+# Output:
+# Monte-Carlo estimated expected waiting time.
+
+# Method:
+# Generate tosses and use firsthit() to find the pattern.
+# Calculate the average of results.
+# Compare them with the exact expected waiting time.
+
+mc_ewait <- function(a, p = 0.5, nreps = 10000) {
+  
+  waiting_times <- numeric(nreps)
+  
+  # Run simulation nreps times. 
+  for (i in seq_len(nreps)) {
+    
+    # Create an empty vector.
+    stream <- integer(0)
+    
+    repeat {
+      
+      # Add one toss to the stream.
+      stream <- c(stream, rbinom(1, 1, p))
+      
+      # Check whether the pattern has appeard.
+      hit <- firsthit(stream, a)
+      
+      # If pattern has appeard, stop the repeat.
+      if (!is.na(hit[1])) {
+        waiting_times[i] <- hit[1]
+        break
+      }
+    }
+  }
+  
+  return(mean(waiting_times))
+}
+
+# Compare Monte Carlo estimates with the exact waiting values 
+# for patterns of length 2 with a fair coin.
+set.seed(7)
+mc <- sapply(patterns,  mc_ewait, p = 0.5, nreps = 10000)
+
+results <- data.frame(
+  Pattern = names(patterns),
+  Exact = as.numeric(exact),
+  Monte_Carlo = as.numeric(mc)
+)
+
+print(results)
+
+# The results show that the Monte Carlo estimates are close to the 
+# exact expected waiting times for all four patterns. For a fair 
+# coin, the expected waiting times are 6 tosses for HH and TT, 
+# and 4 tosses for HT and TH. 
+
+# Compare Monte Carlo estimates with the exact waiting values 
+# for a biased coin: p is not equal to 0.5.
+exact_biased <- ewait(c(1, 1, 0), p = 0.7)
+mc_biased <- mc_ewait(c(1, 1, 0), p = 0.7, nreps = 10000)
+
+Biased_coin <- data.frame(
+  Biased_Probability = 0.70,
+  Exact_Waiting = exact_biased,
+  Monte_Carlo_Waiting = mc_biased
+)
+
+print(Biased_coin)
+
+# For a biased coin with p = 0.7, the exact expected waiting time 
+# for HHT is approximately 6.8027, while the Monte Carlo estimate 
+# is 6.8034. These results confirm that the simulation provides 
+# a good approximation of the exact expected waiting time.
 
 
 # Task 5: Calculate the matrix of pairwise win probabilities.
