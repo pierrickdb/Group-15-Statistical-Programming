@@ -338,11 +338,6 @@ ewait <- function(a, p = 0.5) {
 
 pmat <- function(k, p = 0.5, nreps = 10000) {
 
-  # Input check for k.
-  if (!is.numeric(k) || length(k) != 1 ||
-      is.na(k) || !is.finite(k)) {
-    stop("k must be a positive number.")
-
   # Generate all possible binary patterns of length k.
   pattern <- expand.grid(rep(list(0:1), k))
   
