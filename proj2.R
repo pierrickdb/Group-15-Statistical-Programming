@@ -46,7 +46,7 @@ firsthit <- function(x, a) {
   # Method:
   #   Convert a vector into a one-row matrix. Build a logical matrix
   #   of all possible starting positions and compare each element of
-  #   the pattern with the matching shifted columns of x. Take the
+  #   the pattern with the matching shifted column of x. Take the
   #   first matching start in each row and add k - 1 to obtain the
   #   ending position.
   
@@ -58,7 +58,7 @@ firsthit <- function(x, a) {
   L <- ncol(x)
   k <- length(a)
   
-  # A pattern longer than the sequence cannot occur.
+  #A pattern longer than the sequence cannot occur.
   if (k > L) {
     return(rep(NA, nrow(x)))
   }
@@ -81,9 +81,9 @@ firsthit <- function(x, a) {
 # Test firsthit() on the stream below
 x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
 
-firsthit(x, c(1, 0, 1))   # Expected: 6
-firsthit(x, c(0, 1, 1))   # Expected: 7
-firsthit(x, c(0, 0, 0))   # Expected: NA
+firsthit(x, c(1, 0, 1))   #6
+firsthit(x, c(0, 1, 1))   #7
+firsthit(x, c(0, 0, 0))   #NA
 
 
 # Task 2: Simulate duels between two patterns.
@@ -105,7 +105,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
   # Method:
   #   Check that the patterns have equal length and are distinct.
   #   Generate tosses in blocks, one row per duel, and find the first
-  #   occurrence of each pattern with firsthit(). Store the results of
+  #   occurrence of each pattern with firsthit function. Store the results of
   #   decided duels and continue only with the undecided ones. Keep the
   #   last k - 1 tosses of each undecided row so that patterns crossing
   #   block boundaries are detected.
@@ -120,7 +120,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
     stop("a and b are identical")
   }
   
-  # Initialize the block length and simulation results.
+  # Initialize the block length and simulation result
   time <- 0
   B <- 3 * k
   
@@ -130,7 +130,7 @@ sim_duels <- function(a, b, p = 0.5, nreps = 1) {
   
   while (length(active) > 0) {
     
-    # Generate the initial block of tosses.
+    # Generate the initial block of toss.
     if (time == 0) {
       W <- matrix(
         rbinom(nreps * B, size = 1, prob = p),
