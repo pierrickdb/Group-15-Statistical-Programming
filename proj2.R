@@ -81,9 +81,9 @@ firsthit <- function(x, a) {
 # Test firsthit() on the stream below
 x <- c(1, 0, 0, 1, 0, 1, 1, 1, 0)
 
-firsthit(x, c(1, 0, 1))   # Expected: 6
-firsthit(x, c(0, 1, 1))   # Expected: 7
-firsthit(x, c(0, 0, 0))   # Expected: NA
+firsthit(x, c(1, 0, 1))   #6
+firsthit(x, c(0, 1, 1))   #7
+firsthit(x, c(0, 0, 0))   #NA
 
 
 # Task 2: Simulate duels between two patterns.
