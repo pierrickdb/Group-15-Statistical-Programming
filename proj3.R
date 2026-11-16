@@ -143,11 +143,7 @@ poisson_lasso_edf <- function(beta, y, lambda) {
 # Analysis and testing
 # =============================================================================
 
-<<<<<<< HEAD
 # Task 1: Generate the data set
-=======
-# Task 1: Generate the data next set
->>>>>>> aaa74d07343151a5503cf4be8c21697de3b111b4
 
 set.seed(12345)
 
@@ -344,8 +340,8 @@ lines(time, mu_hat_best, col = "red",
 
 abline(v = tau_hat, col = "blue", lty = 2)
 
-legend("topright", cex = 0.7,
-       legend = c("Data", "True mean",
+legend("topright", cex = 0.55,
+         legend = c("Data", "True mean",
                   "Estimated mean", "Changepoints"),
        col = c("grey", "black", "red", "blue"),
        pch = c(16, NA, NA, NA),
@@ -444,7 +440,7 @@ ylim <- c(0, 1.35 * max(c(y, mu_true, mu_hat_best, mu_bc, q_U_bc)))  # room for 
 plot(time, y, pch = 16, col = "grey",
      ylim = ylim,
      xlab = "Time k", ylab = expression("Count " * y[k] * " / mean " * mu[k]),
-     main = "Poisson changepoint model: bias corrected fit with 95% CI")
+     main = "Bias-corrected Poisson model")
 
 polygon(c(time, rev(time)), c(q_L_bc, rev(q_U_bc)),
         col = adjustcolor("blue", alpha.f = 0.15), border = NA)
@@ -455,7 +451,7 @@ lines(time, mu_true, col = "black", lwd = 2, type = "s")
 lines(time, mu_hat_best, col = "red", lwd = 2, type = "s")
 lines(time, mu_bc, col = "blue", lwd = 2, type = "s")
 
-legend("topright",
+legend("topright", cex = 0.7,
        legend = c("Observations", "True mean", "Estimated mean",
                   "Bias corrected mean", "Bias corrected 95% CI"),
        col = c("grey", "black", "red", "blue", "blue"),
@@ -463,11 +459,7 @@ legend("topright",
        lty = c(NA, 1, 1, 1, 2),
        lwd = c(NA, 2, 2, 2, 1.5),
        bg = "white")
-<<<<<<< HEAD
-=======
 
-# The bias correction moves the segment levels close to the truth (e.g. the
-# middle segment from around 3.0 to 2.1, truth 2). Near the changepoints the bootstrap fits
-# disagree on the jump location, so the band widens there and mu_bc overshoots.
+# The bias correction moves the middle segment closer to the true mean.
+# Near the changepoints, bootstrap estimates vary, widening the intervals.
 
->>>>>>> aaa74d07343151a5503cf4be8c21697de3b111b4
