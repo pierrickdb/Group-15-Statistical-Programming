@@ -143,7 +143,11 @@ poisson_lasso_edf <- function(beta, y, lambda) {
 # Analysis and testing
 # =============================================================================
 
+<<<<<<< HEAD
 # Task 1: Generate the data set
+=======
+# Task 1: Generate the data next set
+>>>>>>> aaa74d07343151a5503cf4be8c21697de3b111b4
 
 set.seed(12345)
 
@@ -459,3 +463,11 @@ legend("topright",
        lty = c(NA, 1, 1, 1, 2),
        lwd = c(NA, 2, 2, 2, 1.5),
        bg = "white")
+<<<<<<< HEAD
+=======
+
+# The bias correction moves the segment levels close to the truth (e.g. the
+# middle segment from around 3.0 to 2.1, truth 2). Near the changepoints the bootstrap fits
+# disagree on the jump location, so the band widens there and mu_bc overshoots.
+
+>>>>>>> aaa74d07343151a5503cf4be8c21697de3b111b4
