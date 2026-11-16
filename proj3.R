@@ -747,4 +747,63 @@ lambda_best
 m_hat
 tau_hat
 
+# Task 6: Parametric bootstrap (B = 200) at the best lambda
+
+B <- 200
+mu_boot <- matrix(NA, B, n)          # row b = bootstrap estimate mu^(b)
+
+set.seed(1)
+for (b in 1:B) {
+  fit_sim <- fit_poisson_lasso(rpois(n, mu_hat), lambda_best)
+  if (fit_sim$convergence == 0) mu_boot[b, ] <- exp(cumsum(fit_sim$par))
+}
+sum(is.na(mu_boot[, 1]))             # number of non-converged fits (excluded)
+
+mu_bar <- colMeans(mu_boot, na.rm = TRUE)
+
+plot(time, y, pch = 16, col = "grey", ylim = c(0, 1.35 * max(y)),
+     xlab = "Time k", ylab = "Count / mean",
+     main = "Bootstrap average vs estimated mean")
+lines(time, mu_true, lwd = 2, type = "s")
+lines(time, mu_hat, col = "red", lwd = 2, type = "s")
+lines(time, mu_bar, col = "darkgreen", lwd = 2, type = "s")
+legend("topright", c("Observations", "True mean", "Estimated mean", "Bootstrap average"),
+       col = c("grey", "black", "red", "darkgreen"), pch = c(16, NA, NA, NA),
+       lty = c(NA, 1, 1, 1), lwd = c(NA, 2, 2, 2), bg = "white")
+# mu_bar is further from the truth than mu_hat: the shrinkage bias is applied
+# twice (once in mu_hat, once more when refitting data simulated from it).
+
+# Bias correction: mu_bc = mu_hat - (mu_bar - mu_hat)
+mu_bc <- 2 * mu_hat - mu_bar
+
+# 95% bootstrap quantiles, reflected about mu_hat (basic bootstrap interval):
+# the spread of mu^(b) - mu_hat stands in for that of mu_hat - mu.
+q_L <- apply(mu_boot, 2, quantile, probs = 0.025, na.rm = TRUE)
+q_U <- apply(mu_boot, 2, quantile, probs = 0.975, na.rm = TRUE)
+q_L_bc <- pmax(2 * mu_hat - q_U, 0)  # a Poisson mean cannot be negative
+q_U_bc <- 2 * mu_hat - q_L
+
+
+# Task 7: Final plot
+
+plot(time, y, pch = 16, col = "grey",
+     ylim = c(0, 1.35 * max(y, q_U_bc)),   # headroom for the legend
+     xlab = "Time k", ylab = expression("Count " * y[k] * " / mean " * mu[k]),
+     main = "Bias corrected mean function with 95% confidence band")
+polygon(c(time, rev(time)), c(q_L_bc, rev(q_U_bc)),
+        col = adjustcolor("blue", alpha.f = 0.15), border = NA)
+lines(time, q_L_bc, col = "blue", lty = 2, type = "s")
+lines(time, q_U_bc, col = "blue", lty = 2, type = "s")
+lines(time, mu_true, lwd = 2, type = "s")
+lines(time, mu_hat, col = "red", lwd = 2, type = "s")
+lines(time, mu_bc, col = "blue", lwd = 2, type = "s")
+legend("topright",
+       c("Observations", "True mean", "Estimated mean",
+         "Bias corrected mean", "Bias corrected 95% CI"),
+       col = c("grey", "black", "red", "blue", "blue"),
+       pch = c(16, NA, NA, NA, NA), lty = c(NA, 1, 1, 1, 2),
+       lwd = c(NA, 2, 2, 2, 1), bg = "white")
+# The bias correction moves the segment levels close to the truth (e.g. the
+# middle segment from ~3.0 to ~2.1, truth 2). Near the changepoints the bootstrap fits
+# disagree on the jump location, so the band widens there and mu_bc overshoots.
 
