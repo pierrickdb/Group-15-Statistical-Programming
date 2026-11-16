@@ -125,7 +125,6 @@ finite_hess <- function(fn, beta, h = 1e-5) {
 
 # Task 1: Generate the data next set
 
-
 set.seed(12345)
 
 n <- 100
@@ -419,6 +418,6 @@ legend("topright",
        bg = "white")
 
 # The bias correction moves the segment levels close to the truth (e.g. the
-# middle segment from ~3.0 to ~2.1, truth 2). Near the changepoints the bootstrap fits
+# middle segment from around 3.0 to 2.1, truth 2). Near the changepoints the bootstrap fits
 # disagree on the jump location, so the band widens there and mu_bc overshoots.
 
