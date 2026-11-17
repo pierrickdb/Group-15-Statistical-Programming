@@ -462,16 +462,17 @@ legend("topright", cex = 0.7,
        bg = "white")
 
 # Interpretation of the final plot:
-# Shrinkage "pulls" the segment means of mu_hat towards each other.
-# The bias correction largely reverses this, especially in the middle segment about (3.1 to 2.1)
-# The 95% band is narrow within segments but widens sharply
-# around k = 30 and k = 70. There the bootstrap fits disagree on where the jump is, so
-# mu_bar is smeared and mu_bc = 2*mu_hat - mu_bar overshoots (e.g. approx. 11.8 at k = 29).
-# The band covers the true mean at about 97% of time points; it misses only right at
-# the jump near k = 70, which the fit spreads over k = 69-72.
+# Shrinkage pulls the segment means of mu_hat towards each other; the bias
+# correction largely reverses this, especially in the middle segment.
+round(c(mu_hat = mean(mu_hat_best[31:68]), mu_bc = mean(mu_bc[31:68])), 1)  
 
+# The band is narrow within segments but widens sharply around k = 30 and k = 70:
+# the bootstrap fits disagree on where the jump is, so mu_bar is smeared and
+# mu_bc = 2*mu_hat - mu_bar overshoots just before the jump.
+round(mu_bc[29], 1)
+
+# Coverage: proportion of time points where the band contains the true mean
 mean(q_L_bc <= mu_true & mu_true <= q_U_bc)
-
-# 0.97: the bias-corrected 95% band contains the true mean at 97 of the 100 time
-# points, close to the nominal 95%. The misses are at the jump near k = 70, where
-# the fit spreads the changepoint over around k = 69-72.
+which(!(q_L_bc <= mu_true & mu_true <= q_U_bc))
+# 0.97 is close to the nominal 95%. The misses are at the jump near k = 70,
+# which the fit spreads over k = 69-72.
