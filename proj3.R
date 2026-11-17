@@ -362,11 +362,11 @@ tau_hat
 
 # Task 6: Parametric bootstrap
 
-B <- 200
-mu_boot <- matrix(NA, nrow = B, ncol = n)  
-
 # Bootstrap variation estimates uncertainty in the fitted mean.
 # Reflecting the quantiles gives bias-corrected confidence limits.
+
+B <- 200
+mu_boot <- matrix(NA, nrow = B, ncol = n)  
 
 conv_boot <- numeric(B)
 
@@ -388,6 +388,7 @@ for (j in 1:B) {
   
   conv_boot[j] <- fit_sim$convergence
   
+  #sanity check if not converges
   if (fit_sim$convergence != 0) {
     warning(paste("No convergence in bootstrap sample", j))
     next
@@ -396,12 +397,14 @@ for (j in 1:B) {
   mu_boot[j, ] <- exp(cumsum(fit_sim$par))
 }
 
-# Number of non-converged fits (these are excluded below)
+# Number of non-converged fits 
 sum(conv_boot != 0)
 
 # Average bootstrap mean function
 mu_bar <- colMeans(mu_boot, na.rm = TRUE)
-# The bootstrap average may be further from the true mean
+
+# Iterpretation of the average boot strap: 
+# The bootstraped average may be further from the true mean
 # because the simulations start from an already biased estimate.
 
 # Plot: data, true mean, estimate, bootstrap average
@@ -426,16 +429,14 @@ mu_bc <- 2 * mu_hat_best - mu_bar
 q_L <- apply(mu_boot, 2, quantile, probs = 0.025, na.rm = TRUE)
 q_U <- apply(mu_boot, 2, quantile, probs = 0.975, na.rm = TRUE)
 
-# Bootstrap differences mu^(b) - mu_hat_best
 # estimate the variability of the fitted mean.
-
 q_L_bc <- pmax(2 * mu_hat_best - q_U, 0)
 q_U_bc <- 2 * mu_hat_best - q_L
 
 
 # Task 7: Final plot
 
-ylim <- c(0, 1.35 * max(c(y, mu_true, mu_hat_best, mu_bc, q_U_bc)))  # room for legend
+ylim <- c(0, 22) 
 
 plot(time, y, pch = 16, col = "grey",
      ylim = ylim,
@@ -460,6 +461,17 @@ legend("topright", cex = 0.7,
        lwd = c(NA, 2, 2, 2, 1.5),
        bg = "white")
 
-# The bias correction moves the middle segment closer to the true mean.
-# Near the changepoints, bootstrap estimates vary, widening the intervals.
+# Interpretation of the final plot:
+# Shrinkage "pulls" the segment means of mu_hat towards each other.
+# The bias correction largely reverses this, especially in the middle segment about (3.1 to 2.1)
+# The 95% band is narrow within segments but widens sharply
+# around k = 30 and k = 70. There the bootstrap fits disagree on where the jump is, so
+# mu_bar is smeared and mu_bc = 2*mu_hat - mu_bar overshoots (e.g. approx. 11.8 at k = 29).
+# The band covers the true mean at about 97% of time points; it misses only right at
+# the jump near k = 70, which the fit spreads over k = 69-72.
 
+mean(q_L_bc <= mu_true & mu_true <= q_U_bc)
+
+# 0.97: the bias-corrected 95% band contains the true mean at 97 of the 100 time
+# points, close to the nominal 95%. The misses are at the jump near k = 70, where
+# the fit spreads the changepoint over around k = 69-72.
