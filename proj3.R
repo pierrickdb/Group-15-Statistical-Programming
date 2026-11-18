@@ -373,9 +373,9 @@ legend("topright",
        lwd = c(NA, 2, 2))
 
 # The optimisation converged successfully.
-# The estimated mean captures the general trend in the data,
-# although lambda = 1 does not provide sufficient shrinkage
-# to produce a clearly defined changepoint structure.
+# The estimated mean captures the general trend in the data.
+# However, lambda = 1 provides insufficient penalisation
+# to identify a clearly defined changepoint structure.
 
 # Task 4: Choosing lambda using mBIC
 
@@ -442,7 +442,7 @@ data.frame(
 
 # The minimum mBIC occurs at log(lambda) = 3,
 # corresponding to lambda = 20.08554.
-# This penalty value provides the best balance between
+# This penalty value provides a balance between
 # model fit and model complexity according to the mBIC criterion.
 
 # Plot mBIC against log-lambda.
@@ -621,9 +621,10 @@ legend("topright",
 mu_bc <- 2 * mu_hat_best - mu_bar
 
 # The bootstrap average differs from the original fitted mean,
-# indicating bias in the penalised estimator.
-# The bias-corrected estimate adjusts for this discrepancy
-# by subtracting the estimated bootstrap bias.
+# suggesting that the penalised estimator is biased.
+# The difference estimates the bias introduced by the penalty.
+# The bias-corrected estimate subtracts this estimated bias
+# from the original fitted mean to reduce shrinkage effects.
 
 # Calculate the lower and upper 95% bootstrap quantiles.
 q_L <- apply(mu_boot, 2, quantile, probs = 0.025)
@@ -722,8 +723,8 @@ round(c(mu_hat = mean(mu_hat_best[31:68]), mu_bc = mean(mu_bc[31:68])), 1)
 #   where the shrinkage is largest. In the outer segments it slightly
 #   overcorrect (by around 0.3 to 0.5) because the bias estimates is noisy.
 
-#   (2) Band width and overshoot at the change points
-#   the 95% band is narrow within segments but widens sharply just
+#   (2) Band width and overshoot at the change points.
+#   The 95% band is narrow within segments but widens sharply just
 #   before the jumps, and mu_bc overshoots before the first jump.
 #   Evidence: mu_bc rises from around 10.7 at k = 25 to around 11.8 at around k = 29.
 #   The band is around 1-2 wide within segments but around 5.7 wide at around k = 29.
