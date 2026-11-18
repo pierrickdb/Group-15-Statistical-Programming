@@ -360,101 +360,166 @@ tau_hat
 # The penalty shrinks the estimated mean changes.
 
 
-# Task 6: Parametric bootstrap
+# Task 6: Parametric bootstrap used to estimate uncertainty and bias
 
-# Bootstrap variation estimates uncertainty in the fitted mean.
-# Reflecting the quantiles gives bias-corrected confidence limits.
-
+# Define the number of bootstrap samples.
 B <- 200
-mu_boot <- matrix(NA, nrow = B, ncol = n)  
 
+# Store the estimated mean function for each bootstrap sample.
+mu_boot <- matrix(NA_real_, nrow = B, ncol = n)
+
+# Store the convergence status of each bootstrap fit.
 conv_boot <- numeric(B)
 
+# Generate and fit the bootstrap samples.
 set.seed(1)
 
 for (j in 1:B) {
   
-  y_sim <- rpois(n, lambda = mu_hat_best)       
+  # Simulate new observations using the best fitted mean function.
+  y_sim <- rpois(n, lambda = mu_hat_best)
   
-  # simulate from best fitted model
-  
+  # Initialise the parameters for the bootstrap model.
   b_start <- c(log(mean(y_sim)), rep(0, n - 1))
   
-  
+  # Fit the model using the optimal penalty value.
   fit_sim <- fit_poisson_lasso(
-    y_sim, lambda_best,
+    y_sim,
+    lambda_best,
     beta_start = b_start
   )
   
+  # Record the convergence status.
   conv_boot[j] <- fit_sim$convergence
   
-  #sanity check if not converges
+  # Skip bootstrap samples where optimisation fails.
   if (fit_sim$convergence != 0) {
     warning(paste("No convergence in bootstrap sample", j))
     next
   }
   
+  # Store the estimated mean function.
   mu_boot[j, ] <- exp(cumsum(fit_sim$par))
 }
 
-# Number of non-converged fits 
+# Check the number of unsuccessful bootstrap fits.
 sum(conv_boot != 0)
 
-# Average bootstrap mean function
-mu_bar <- colMeans(mu_boot, na.rm = TRUE)
+# Stop if any bootstrap sample failed.
+if (any(conv_boot != 0) || anyNA(mu_boot)) {
+  stop("Some bootstrap fits failed. Check convergence before continuing.")
+}
 
-# Iterpretation of the average boot strap: 
-# The bootstraped average may be further from the true mean
-# because the simulations start from an already biased estimate.
+# Calculate the average bootstrap mean function.
+mu_bar <- colMeans(mu_boot)
 
-# Plot: data, true mean, estimate, bootstrap average
-
-plot(time, y, pch = 16, col = "grey",
+# Plot the observations, true mean, estimated mean and bootstrap average.
+plot(time, y,
+     pch = 16,
+     col = "grey",
      ylim = c(0, 1.3 * max(y, mu_true, mu_hat_best, mu_bar)),
-     xlab = "Time", ylab = "Count / Mean",
-     main = "Bootstrap average vs estimated mean")
-lines(time, mu_true, col = "black", lwd = 2, type = "s")
-lines(time, mu_hat_best, col = "red", lwd = 2, type = "s")
-lines(time, mu_bar, col = "darkgreen", lwd = 2, type = "s")
-legend("topright",
-       legend = c("Observations", "True mean", "Estimated mean",
-                  "Bootstrap average"),
-       col = c("grey", "black", "red", "darkgreen"),
-       pch = c(16, NA, NA, NA), lty = c(NA, 1, 1, 1), lwd = c(NA, 2, 2, 2))
+     xlab = "Time",
+     ylab = "Count / Mean",
+     main = "Bootstrap Average vs Estimated Mean")
 
-# Bias corrected mean function: mu_hat_best - (mu_bar - mu_hat_best)
+lines(time, mu_true,
+      col = "black",
+      lwd = 2,
+      type = "s")
+
+lines(time, mu_hat_best,
+      col = "red",
+      lwd = 2,
+      type = "s")
+
+lines(time, mu_bar,
+      col = "darkgreen",
+      lwd = 2,
+      type = "s")
+
+legend("topright",
+       legend = c("Observations", "True mean",
+                  "Estimated mean", "Bootstrap average"),
+       col = c("grey", "black", "red", "darkgreen"),
+       pch = c(16, NA, NA, NA),
+       lty = c(NA, 1, 1, 1),
+       lwd = c(NA, 2, 2, 2))
+
+# Calculate the bias-corrected mean function.
 mu_bc <- 2 * mu_hat_best - mu_bar
 
-# 95% bootstrap quantiles at each time point
-q_L <- apply(mu_boot, 2, quantile, probs = 0.025, na.rm = TRUE)
-q_U <- apply(mu_boot, 2, quantile, probs = 0.975, na.rm = TRUE)
+# Calculate the lower and upper 95% bootstrap quantiles.
+q_L <- apply(mu_boot, 2, quantile, probs = 0.025)
+q_U <- apply(mu_boot, 2, quantile, probs = 0.975)
 
-# estimate the variability of the fitted mean.
+# Reflect the bootstrap quantiles to obtain bias-corrected limits.
 q_L_bc <- pmax(2 * mu_hat_best - q_U, 0)
 q_U_bc <- 2 * mu_hat_best - q_L
 
 
 # Task 7: Final plot
 
-ylim <- c(0, 22) 
+# Calculate suitable vertical axis limits using all plotted values.
+ylim <- range(c(y, mu_true, mu_hat_best, mu_bc,
+                q_L_bc, q_U_bc), na.rm = TRUE)
 
-plot(time, y, pch = 16, col = "grey",
+# Ensure that the vertical axis starts at zero.
+ylim[1] <- min(0, ylim[1])
+
+# Create the plot without drawing observations initially.
+plot(time, mu_hat_best,
+     type = "n",
      ylim = ylim,
-     xlab = "Time k", ylab = expression("Count " * y[k] * " / mean " * mu[k]),
-     main = "Bias-corrected Poisson model")
+     xlab = "Time k",
+     ylab = expression("Count " * y[k] * " / mean " * mu[k]),
+     main = "Bias-corrected Poisson Model")
 
-polygon(c(time, rev(time)), c(q_L_bc, rev(q_U_bc)),
-        col = adjustcolor("blue", alpha.f = 0.15), border = NA)
+# Draw the area between the bias-corrected confidence limits.
+polygon(c(time, rev(time)),
+        c(q_L_bc, rev(q_U_bc)),
+        col = adjustcolor("blue", alpha.f = 0.15),
+        border = NA)
 
-lines(time, q_L_bc, col = "blue", lty = 2, lwd = 1.5, type = "s")
-lines(time, q_U_bc, col = "blue", lty = 2, lwd = 1.5, type = "s")
-lines(time, mu_true, col = "black", lwd = 2, type = "s")
-lines(time, mu_hat_best, col = "red", lwd = 2, type = "s")
-lines(time, mu_bc, col = "blue", lwd = 2, type = "s")
+# Add the original observations.
+points(time, y,
+       pch = 16,
+       col = "grey")
 
-legend("topright", cex = 0.7,
-       legend = c("Observations", "True mean", "Estimated mean",
-                  "Bias corrected mean", "Bias corrected 95% CI"),
+# Add the bias-corrected confidence limits.
+lines(time, q_L_bc,
+      col = "blue",
+      lty = 2,
+      lwd = 1.5,
+      type = "s")
+
+lines(time, q_U_bc,
+      col = "blue",
+      lty = 2,
+      lwd = 1.5,
+      type = "s")
+
+# Add the true, estimated and bias-corrected mean functions.
+lines(time, mu_true,
+      col = "black",
+      lwd = 2,
+      type = "s")
+
+lines(time, mu_hat_best,
+      col = "red",
+      lwd = 2,
+      type = "s")
+
+lines(time, mu_bc,
+      col = "blue",
+      lwd = 2,
+      type = "s")
+
+# Identify all elements of the final plot.
+legend("topright",
+       cex = 0.7,
+       legend = c("Observations", "True mean",
+                  "Estimated mean", "Bias-corrected mean",
+                  "Bias-corrected 95% CI"),
        col = c("grey", "black", "red", "blue", "blue"),
        pch = c(16, NA, NA, NA, NA),
        lty = c(NA, 1, 1, 1, 2),
