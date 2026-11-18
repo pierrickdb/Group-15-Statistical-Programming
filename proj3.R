@@ -28,87 +28,173 @@
 # 6. poisson_lasso_edf: Calculates effective degrees of freedom.
 # =============================================================================
 
-# Function definitions
+# FUNCTION DEFINITIONS
 
 # Task 2(a): Objective function
+# Calculate the penalised negative log-likelihood
+# for the Poisson changepoint model.
 
 poisson_lasso_objective <- function(beta, y, lambda = 1, eps = 1e-6) {
   
+  # Inputs:
+  #   beta: Parameter vector of length n.
+  #   y: Observed data vector.
+  #   lambda: LASSO penalty parameter. Default value is 1.
+  #   eps: Smoothing parameter. Default value is 1e-6.
+  
+  # Output:
+  #   The penalised negative log-likelihood.
+  
+  # Method:
+  #   Calculate the Poisson mean function, evaluate the
+  #   negative log-likelihood and add the smoothed LASSO penalty.
+  
+  # Calculate the Poisson mean function.
   mu <- exp(cumsum(beta))
   
+  # Calculate the negative Poisson log-likelihood.
   neg_loglik <- -sum(dpois(y, lambda = mu, log = TRUE))
   
+  # Apply the smoothed LASSO penalty, excluding the first parameter.
   penalty <- lambda * sum(sqrt(beta[-1]^2 + eps))
   
+  # Return the penalised objective function.
   return(neg_loglik + penalty)
 }
 
 
 # Task 2(b): Gradient function
+# Calculate the gradient of the penalised objective function.
 
 poisson_lasso_grad <- function(beta, y, lambda = 1, eps = 1e-6) {
   
+  # Inputs:
+  #   beta: Parameter vector of length n.
+  #   y: Observed data vector.
+  #   lambda: LASSO penalty parameter. Default value is 1.
+  #   eps: Smoothing parameter. Default value is 1e-6.
+  
+  # Output:
+  #   Gradient vector containing the first partial derivatives.
+  
+  # Method:
+  #   Calculate the likelihood gradient using reverse cumulative
+  #   sums and add the gradient of the smoothed penalty.
+  
+  # Calculate the Poisson mean function.
   mu <- exp(cumsum(beta))
   
+  # Calculate the gradient of the negative log-likelihood.
   grad <- rev(cumsum(rev(mu - y)))
   
+  # Add the penalty gradient, excluding the first parameter.
   grad[-1] <- grad[-1] +
     lambda * beta[-1] / sqrt(beta[-1]^2 + eps)
   
+  # Return the gradient vector.
   return(grad)
 }
 
 
 # Task 2(c): Hessian function
+# Calculate the Hessian matrix of the penalised objective function.
 
 poisson_lasso_hess <- function(beta, y, lambda = 1, eps = 1e-6) {
   
+  # Inputs:
+  #   beta: Parameter vector of length n.
+  #   y: Observed data vector.
+  #   lambda: LASSO penalty parameter. Default value is 1.
+  #   eps: Smoothing parameter. Default value is 1e-6.
+  
+  # Output:
+  #   An n by n Hessian matrix containing the second derivatives.
+  
+  # Method:
+  #   Calculate the likelihood Hessian using reverse cumulative sums
+  #   and add the second derivatives of the penalty.
+  
+  # Store the number of parameters.
   n <- length(beta)
   mu <- exp(cumsum(beta))
   
+  # Calculate reverse cumulative sums of the Poisson means.
   s <- rev(cumsum(rev(mu)))
   
+  # Find the maximum index for each pair of parameters.
   idx <- outer(1:n, 1:n, pmax)
   H <- matrix(s[idx], n, n)
   
+  # Calculate the second derivatives of the penalty.
   penalty_hess <- c(0, lambda * eps /
                       (beta[-1]^2 + eps)^(3/2))
   
+  # Add the penalty derivatives to the diagonal.
   diag(H) <- diag(H) + penalty_hess
   
+  # Return the Hessian matrix.
   return(H)
 }
 
 
-# Numerical differentiation
-# Applied to the objective to check the gradient,
-# and to the gradient to check the Hessian.
+# Task 2(d): Numerical differentiation
+# Use central finite differences to check the analytical
+# gradient and Hessian functions.
 
 fd_jacobian <- function(fn, beta, h = 1e-5) {
   
+  # Inputs:
+  #   fn: Function to differentiate.
+  #   beta: Parameter vector at which derivatives are evaluated.
+  #   h: Finite difference step size. Default value is 1e-5.
+  
+  # Output:
+  #   Numerical Jacobian matrix.
+  
+  # Store the number of parameters.
   n <- length(beta)
   J <- matrix(0, length(fn(beta)), n)
   
+  # Calculate numerical derivatives for each parameter.
   for (i in 1:n) {
     beta_plus <- beta_minus <- beta
     beta_plus[i] <- beta_plus[i] + h
     beta_minus[i] <- beta_minus[i] - h
     
+    # Apply the central finite difference approximation.
     J[, i] <- (fn(beta_plus) - fn(beta_minus)) / (2 * h)
   }
   
+  # Return the numerical Jacobian.
   return(J)
 }
 
 
-# Fit the Poisson LASSO model
+# Task 3: Fit the Poisson LASSO model using optim.
+# Estimate the beta parameters by minimising the penalised
+# negative log-likelihood using the BFGS method.
 
 fit_poisson_lasso <- function(y, lambda = 1, beta_start = NULL) {
   
+  # Inputs:
+  #   y: Observed data vector.
+  #   lambda: LASSO penalty parameter. Default value is 1.
+  #   beta_start: Optional initial parameter vector.
+  
+  # Output:
+  #   Optimisation results containing estimated parameters
+  #   and convergence information.
+  
+  # Method:
+  #   Initialise the parameters and minimise the objective
+  #   function using BFGS with the analytical gradient.
+  
+  # Set the initial parameter values if none are provided.
   if (is.null(beta_start)) {
     beta_start <- c(log(mean(y)), rep(0, length(y) - 1))
   }
   
+  # Fit the model using the BFGS optimisation method.
   fit <- optim(
     beta_start, poisson_lasso_objective,
     gr = poisson_lasso_grad,
@@ -117,26 +203,46 @@ fit_poisson_lasso <- function(y, lambda = 1, beta_start = NULL) {
     control = list(maxit = 10000, reltol = 1e-9)
   )
   
+  # Check whether the optimisation algorithm converged.
   if (fit$convergence != 0) {
     warning(paste("No convergence at lambda =", lambda))
   }
   
+  # Return the optimisation results.
   return(fit)
 }
 
 
-# Calculate effective degrees of freedom
+# Task 4: Calculate the effective degrees of freedom.
 
+# Calculate the effective degrees of freedom using
+# the penalised and unpenalised Hessian matrices.
 poisson_lasso_edf <- function(beta, y, lambda) {
   
+  # Inputs:
+  #   beta: Estimated parameter vector.
+  #   y: Observed data vector.
+  #   lambda: LASSO penalty parameter.
+  
+  # Output:
+  #   Effective degrees of freedom of the fitted model.
+  
+  # Method:
+  #   Evaluate the penalised and unpenalised Hessians
+  #   and calculate the trace of their matrix product.
+  
+  # Calculate the penalised Hessian.
   H1 <- poisson_lasso_hess(beta, y, lambda)
+  
+  # Calculate the unpenalised Hessian.
   H0 <- poisson_lasso_hess(beta, y, 0)
   
+  # Calculate the effective degrees of freedom.
   edf <- sum(diag(solve(H1, H0)))
   
+  # Return the effective degrees of freedom.
   return(edf)
 }
-
 
 
 # =============================================================================
@@ -145,26 +251,31 @@ poisson_lasso_edf <- function(beta, y, lambda) {
 
 # Task 1: Generate the data set
 
+# Define the number of observations and time points.
 set.seed(12345)
-
 n <- 100
-
 time <- 1:n
 
-tau_true <- c(1, 30, 70, n+1) 
+# Specify the true changepoint locations.
+tau_true <- c(1, 30, 70, n + 1)
 
-m_true <- length(tau_true)-2 
+# Calculate the true number of changepoints.
+m_true <- length(tau_true) - 2
 
-theta_true <- c(10, 2, 7) 
+# Define the Poisson mean for each segment.
+theta_true <- c(10, 2, 7)
 
-mu_true <- numeric(n) 
+mu_true <- numeric(n)
 
-for(i in seq_along(theta_true)) {
-  mu_true[tau_true[i]:(tau_true[i+1]-1)] <- theta_true[i]
+# Assign the corresponding mean to each time segment.
+for (i in seq_along(theta_true)) {
+  mu_true[tau_true[i]:(tau_true[i + 1] - 1)] <- theta_true[i]
 }
 
-y <- rpois(n, lambda = mu_true) ## simulate data y
+# Generate observations from the Poisson changepoint model.
+y <- rpois(n, lambda = mu_true)
 
+# Plot the simulated observations and true mean function.
 plot(time, y,
      pch = 16,
      col = "grey",
@@ -172,34 +283,39 @@ plot(time, y,
      ylab = "Count",
      main = "Simulated Poisson Changepoint Data")
 
-lines(mu_true, 
-      col="black", 
-      lwd=2, 
-      type ="s")
+lines(time, mu_true,
+      col = "black",
+      lwd = 2,
+      type = "s")
 
-abline(v = tau_true[-c(1,length(tau_true))], 
-       lty="dashed")
-
+abline(v = tau_true[-c(1, length(tau_true))],
+       lty = "dashed")
 
 
 # Task 2: Checking the gradient and Hessian
 
+# Choose test parameter values for numerical differentiation.
 beta_test <- c(log(mean(y)), rep(0.05, n - 1))
 
+# Calculate the analytical gradient.
 grad_analytical <- poisson_lasso_grad(beta_test, y)
 
+# Approximate the gradient using central finite differences.
 grad_numerical <- as.vector(fd_jacobian(
   function(b) poisson_lasso_objective(b, y),
   beta_test
 ))
 
+# Calculate the analytical Hessian.
 hess_analytical <- poisson_lasso_hess(beta_test, y)
 
+# Approximate the Hessian using finite differences of the gradient.
 hess_numerical <- fd_jacobian(
   function(b) poisson_lasso_grad(b, y),
   beta_test
 )
 
+# Compare the analytical and numerical derivatives.
 max(abs(grad_analytical - grad_numerical))
 max(abs(hess_analytical - hess_numerical))
 
@@ -210,21 +326,26 @@ max(abs(hess_analytical - hess_numerical))
 
 # Task 3: Fit the model with lambda = 1
 
+# Initialise the parameters using the sample mean.
 beta_start <- c(log(mean(y)), rep(0, n - 1))
 
+# Fit the Poisson LASSO model using BFGS.
 fit <- fit_poisson_lasso(y, lambda = 1, beta_start = beta_start)
 
-
+# Check whether the optimisation algorithm converged.
 fit$convergence
 fit$message
 
-# The model converged with lambda = 1.
-# The fitted mean follows the trend but also fits some noise.
+# Stop if the optimisation did not converge.
+if (fit$convergence != 0) {
+  stop("The model did not converge for lambda = 1.")
+}
 
+# Extract the estimated parameters and mean function.
 beta_hat <- fit$par
 mu_hat1 <- exp(cumsum(beta_hat))
 
-# Plot
+# Plot the observations, true mean and estimated mean.
 plot(time, y,
      pch = 16,
      col = "grey",
@@ -237,7 +358,10 @@ lines(time, mu_true,
       lwd = 2,
       type = "s")
 
-lines(time, mu_hat1, col = "blue", lwd = 2, type = "s")
+lines(time, mu_hat1,
+      col = "blue",
+      lwd = 2,
+      type = "s")
 
 legend("topright",
        legend = c("Observation data",
@@ -249,23 +373,28 @@ legend("topright",
        lwd = c(NA, 2, 2))
 
 
-
-
-
 # Task 4: Choosing lambda using mBIC
 
+# Define the grid of log-lambda values.
 lsp <- seq(-1, 5, by = 0.05)
+
+# Initialise vectors for mBIC and effective degrees of freedom.
 mbic <- rep(Inf, length(lsp))
 edf <- rep(NA_real_, length(lsp))
 
+# Use the initial parameter estimates for the first fit.
 b0 <- beta_start
 
+# Evaluate the model for each penalty value.
 for (i in seq_along(lsp)) {
   
+  # Convert the log-lambda value to lambda.
   lambda <- exp(lsp[i])
   
+  # Fit the model using the current penalty value.
   fit_lambda <- fit_poisson_lasso(y, lambda, b0)
   
+  # Skip penalty values where optimisation fails.
   if (fit_lambda$convergence != 0) {
     next
   }
@@ -274,81 +403,116 @@ for (i in seq_along(lsp)) {
   
   edf[i] <- poisson_lasso_edf(beta_lambda, y, lambda)
   
+  # Calculate the fitted Poisson mean function.
   mu_lambda <- exp(cumsum(beta_lambda))
+  
+  # Calculate the maximised log-likelihood.
   ll <- sum(dpois(y, mu_lambda, log = TRUE))
   
+  # Calculate the modified Bayesian Information Criterion.
   mbic[i] <- 3 * (edf[i] - 1) * log(n) - 2 * ll
   
-  # Use previous estimates as starting values
+  # Use the current estimates as starting values for the next fit.
   b0 <- beta_lambda
 }
 
+# Check that at least one penalty value has a valid mBIC.
+if (all(!is.finite(mbic))) {
+  stop("No valid mBIC values were obtained.")
+}
+
+# Find the penalty value that minimises mBIC.
 i_opt <- which.min(mbic)
 lambda_best <- exp(lsp[i_opt])
 
+# Display the optimal penalty value.
 lambda_best
 
+# Display the optimal log-lambda, EDF and mBIC.
+data.frame(
+  log_lambda = lsp[i_opt],
+  lambda = lambda_best,
+  EDF = edf[i_opt],
+  mBIC = mbic[i_opt]
+)
 # mBIC is minimised at log(lambda) = 3, giving lambda = 20.08554.
 
-plot(lsp, mbic, type = "l",
+# Plot mBIC against log-lambda.
+plot(lsp, mbic,
+     type = "l",
      xlab = "log(lambda)",
      ylab = "mBIC",
      main = "Choosing lambda using mBIC")
 
 points(lsp[i_opt], mbic[i_opt],
-       col = "red", pch = 19)
-
-
+       col = "red",
+       pch = 19)
 
 
 # Task 5: Fit the final model
 
+# Refit the model using the optimal penalty value.
 fit_best <- fit_poisson_lasso(
   y, lambda_best,
   c(log(mean(y)), rep(0, n - 1))
 )
 
-# Check convergence
+# Check convergence of the final model.
 fit_best$convergence
 
+if (fit_best$convergence != 0) {
+  stop("The final model did not converge.")
+}
+
+# Extract the final parameter estimates and mean function.
 beta_best <- fit_best$par
 mu_hat_best <- exp(cumsum(beta_best))
 
-# Number of changepoints
+# Calculate the effective number of changepoints.
 edf_best <- poisson_lasso_edf(beta_best, y, lambda_best)
 m_hat <- floor(edf_best - 1)
 
-# Changepoint locations
+# Identify the changepoints using the largest absolute coefficients.
+# Exclude the first parameter because it represents the intercept.
 if (m_hat > 0) {
   tau_hat <- sort(order(abs(beta_best[-1]),
-                        decreasing = TRUE)[1:m_hat] + 1)
+                        decreasing = TRUE)[seq_len(m_hat)] + 1)
 } else {
   tau_hat <- numeric(0)
 }
 
-# Plot
-plot(time, y, pch = 16, col = "grey",
+# Plot the observations, true mean and estimated mean.
+plot(time, y,
+     pch = 16,
+     col = "grey",
      xlab = "Time",
      ylab = "Count / Mean",
      main = "Final Poisson Changepoint Model")
 
-lines(time, mu_true, col = "black",
-      lwd = 2, type = "s")
+lines(time, mu_true,
+      col = "black",
+      lwd = 2,
+      type = "s")
 
-lines(time, mu_hat_best, col = "red",
-      lwd = 2, type = "s")
+lines(time, mu_hat_best,
+      col = "red",
+      lwd = 2,
+      type = "s")
 
-abline(v = tau_hat, col = "blue", lty = 2)
+abline(v = tau_hat,
+       col = "blue",
+       lty = 2)
 
-legend("topright", cex = 0.55,
-         legend = c("Data", "True mean",
+legend("topright",
+       cex = 0.55,
+       legend = c("Data", "True mean",
                   "Estimated mean", "Changepoints"),
        col = c("grey", "black", "red", "blue"),
        pch = c(16, NA, NA, NA),
        lty = c(NA, 1, 1, 2),
        bty = "n")
 
-# Final results
+# Display the final model results.
 lambda_best
 m_hat
 tau_hat
