@@ -462,17 +462,51 @@ legend("topright", cex = 0.7,
        bg = "white")
 
 # Interpretation of the final plot:
-# Shrinkage pulls the segment means of mu_hat towards each other; the bias
-# correction largely reverses this, especially in the middle segment.
-round(c(mu_hat = mean(mu_hat_best[31:68]), mu_bc = mean(mu_bc[31:68])), 1)  
 
-# The band is narrow within segments but widens sharply around k = 30 and k = 70:
-# the bootstrap fits disagree on where the jump is, so mu_bar is smeared and
-# mu_bc = 2*mu_hat - mu_bar overshoots just before the jump.
+#   (1) Shrinkage and bias correction
+#   mu_hat is pulled towards the overall mean. It is too low in the
+#   high segments and too high in the low middle segment. The bias
+#   correction removes most of this error.
+#   Evidence: in the middle segment, mu_hat is around 3.1 and mu_bc around 2.1,
+#   while the true mean is 2. In the outer segments, mu_hat is around 9.8 and
+#   6.7, mu_bc around 10.5 and 7.3, while the true means are 10 and 7.
+
+round(c(mu_hat = mean(mu_hat_best[31:68]), mu_bc = mean(mu_bc[31:68])), 1)
+
+#   Interpretation: the penalty shrinks the segment levels towards each other.
+#   The boottrap fits are shrunk again relative to mu_hat, so
+#   mu_bar - mu_hat estimates this shrinkage, and subtracting it moves mu_hat
+#   back towards the truth. The correction works best in the middle segment,
+#   where the shrinkage is largest. In the outer segments it slightly
+#   overcorrect (by around 0.3to0.5) because the bias estimates is noisy.
+
+#   (2) Band width and overshoot at the change points
+#   the 95% band is narrow within segments but widens sharply just
+#   before the jumps, and mu_bc overshoots before the first jump.
+#   Evidence: mu_bc rises from around 10.7 at k = 25 to around 11.8 at around k = 29.
+#   The band is around 1-2 wide within segments but around 5.7 wide at around k = 29.
+
 round(mu_bc[29], 1)
 
-# Coverage: proportion of time points where the band contains the true mean
+#   Interpretation: the bootstrap fits disagree on where exactly the jump is.
+#   Their average mu_bar therefor has a smoothed ramp instead of a sharp
+#   step, so it lies below mu_hat just before the jump. As a result,
+#   mu_bc = 2*mu_hat - mu_bar is pushed above mu_hat there. The quantiles
+#   at these points mix fits from before and after the jump, which makes the
+#   band wide. Within a segment only the level is uncertain. At a jump the
+#   location is uncertain as well.
+
+#   (3) Pointwise coverage of the true mean
+#   the band contains the true mean at 97 of 100 time points.
+#   Evidence: coverage is 0.97, and the misses are at k = 69, 70 and 71.
+
 mean(q_L_bc <= mu_true & mu_true <= q_U_bc)
 which(!(q_L_bc <= mu_true & mu_true <= q_U_bc))
-# 0.97 is close to the nominal 95%. The misses are at the jump near k = 70,
-# which the fit spreads over k = 69-72.
+
+#   Interpretation: 0.97 is close to the nominal 95%. All misses are at the
+#   second jump where the fit spreads the step an
+#   intermediate level of around 4 to 5, while the true mean jumps directly from
+#   2 to 7. The band is pointwise, not simultaneous, and this is a single
+#   dataset with correlated time points. So 0.97 shows the band behaves
+#   reasonably here but it is not an estimate of the true coverage
+#   probability.
