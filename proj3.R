@@ -390,6 +390,7 @@ edf <- rep(NA_real_, length(lsp))
 b0 <- beta_start
 
 # Evaluate the model for each penalty value.
+fits <- vector("list", length(lsp))
 for (i in seq_along(lsp)) {
   
   # Convert the log-lambda value to lambda.
@@ -404,6 +405,7 @@ for (i in seq_along(lsp)) {
   }
   
   beta_lambda <- fit_lambda$par
+  fits[[i]] <- fit_lambda
   
   edf[i] <- poisson_lasso_edf(beta_lambda, y, lambda)
   
@@ -459,11 +461,8 @@ points(lsp[i_opt], mbic[i_opt],
 
 # Task 5: Fit the final model
 
-# Refit the model using the optimal penalty value.
-fit_best <- fit_poisson_lasso(
-  y, lambda_best,
-  c(log(mean(y)), rep(0, n - 1))
-)
+# Use the optimal model from Task 4.
+fit_best <- fits[[i_opt]]
 
 # Check convergence of the final model.
 fit_best$convergence
@@ -525,7 +524,7 @@ lambda_best
 m_hat
 tau_hat
 
-# EDF = 5.864, giving 4 estimated changepoints.
+# EDF = 5.762, giving 4 estimated changepoints.
 # Estimated locations: 30, 69, 70 and 72.
 # True locations: 30 and 70.
 # The change near 70 is split into several estimated changepoints.
