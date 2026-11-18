@@ -372,6 +372,10 @@ legend("topright",
        lty = c(NA, 1, 1),
        lwd = c(NA, 2, 2))
 
+# The optimisation converged successfully.
+# The estimated mean captures the general trend in the data,
+# although lambda = 1 does not provide sufficient shrinkage
+# to produce a clearly defined changepoint structure.
 
 # Task 4: Choosing lambda using mBIC
 
@@ -435,7 +439,11 @@ data.frame(
   EDF = edf[i_opt],
   mBIC = mbic[i_opt]
 )
-# mBIC is minimised at log(lambda) = 3, giving lambda = 20.08554.
+
+# The minimum mBIC occurs at log(lambda) = 3,
+# corresponding to lambda = 20.08554.
+# This penalty value provides the best balance between
+# model fit and model complexity according to the mBIC criterion.
 
 # Plot mBIC against log-lambda.
 plot(lsp, mbic,
@@ -611,6 +619,11 @@ legend("topright",
 
 # Calculate the bias-corrected mean function.
 mu_bc <- 2 * mu_hat_best - mu_bar
+
+# The bootstrap average differs from the original fitted mean,
+# indicating bias in the penalised estimator.
+# The bias-corrected estimate adjusts for this discrepancy
+# by subtracting the estimated bootstrap bias.
 
 # Calculate the lower and upper 95% bootstrap quantiles.
 q_L <- apply(mu_boot, 2, quantile, probs = 0.025)
