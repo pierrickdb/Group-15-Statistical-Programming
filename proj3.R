@@ -703,11 +703,11 @@ legend("topright",
 round(c(mu_hat = mean(mu_hat_best[31:68]), mu_bc = mean(mu_bc[31:68])), 1)
 
 #   Interpretation: the penalty shrinks the segment levels towards each other.
-#   The boottrap fits are shrunk again relative to mu_hat, so
+#   The bootstrap fits are shrunk again relative to mu_hat, so
 #   mu_bar - mu_hat estimates this shrinkage, and subtracting it moves mu_hat
 #   back towards the truth. The correction works best in the middle segment,
 #   where the shrinkage is largest. In the outer segments it slightly
-#   overcorrect (by around 0.3to0.5) because the bias estimates is noisy.
+#   overcorrect (by around 0.3 to 0.5) because the bias estimates is noisy.
 
 #   (2) Band width and overshoot at the change points
 #   the 95% band is narrow within segments but widens sharply just
@@ -718,7 +718,7 @@ round(c(mu_hat = mean(mu_hat_best[31:68]), mu_bc = mean(mu_bc[31:68])), 1)
 round(mu_bc[29], 1)
 
 #   Interpretation: the bootstrap fits disagree on where exactly the jump is.
-#   Their average mu_bar therefor has a smoothed ramp instead of a sharp
+#   Their average mu_bar therefore has a smoothed ramp instead of a sharp
 #   step, so it lies below mu_hat just before the jump. As a result,
 #   mu_bc = 2*mu_hat - mu_bar is pushed above mu_hat there. The quantiles
 #   at these points mix fits from before and after the jump, which makes the
