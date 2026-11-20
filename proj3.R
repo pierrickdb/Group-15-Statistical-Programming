@@ -477,6 +477,8 @@ mu_hat_best <- exp(cumsum(beta_best))
 
 # Calculate the effective number of changepoints.
 edf_best <- poisson_lasso_edf(beta_best, y, lambda_best)
+# Use the integer part of EDF - 1 to estimate
+# the number of changepoints.
 m_hat <- floor(edf_best - 1)
 
 # Identify the changepoints using the largest absolute coefficients.
@@ -752,3 +754,4 @@ which(!(q_L_bc <= mu_true & mu_true <= q_U_bc))
 #   dataset with correlated time points. So 0.97 shows the band behaves
 #   reasonably here but it is not an estimate of the true coverage
 #   probability.
+
