@@ -523,6 +523,7 @@ legend("topright",
 
 # Display the final model results.
 lambda_best
+edf_best
 m_hat
 tau_hat
 
